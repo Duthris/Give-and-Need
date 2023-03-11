@@ -1,0 +1,213 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DonationStatus {
+  pending
+  accepted
+  rejected
+  onTheWay
+  inBox
+  takenFromBox
+  completed
+}
+
+model AdminUser {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String?   @default("")
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@map(name: "admins")
+}
+
+model RestaurantUser {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  photo     String?    @default("https://res.cloudinary.com/dzqkqzjxw/image/upload/v1622021008/restaurant-user-default-image.png")
+  verified  Boolean    @default(false)
+  phone     String?    @unique
+  name      String?    @default("")
+  address   String?    @default("") @db.VarChar(255)
+  createdAt DateTime?  @default(now())
+  updatedAt DateTime?  @updatedAt
+  OpenFood  OpenFood[]
+  Rating    Rating[]
+
+  @@map(name: "restaurant_users")
+}
+
+model GiverUser {
+  id               Int            @id @default(autoincrement())
+  email            String         @unique
+  password         String
+  photo            String?        @default("https://res.cloudinary.com/dzqkqzjxw/image/upload/v1622021008/giver-user-default-image.png")
+  phone            String?        @unique
+  birthday         DateTime?
+  firstName        String?        @default("")
+  lastName         String?        @default("")
+  address          String?        @default("") @db.VarChar(255)
+  verified         Boolean?       @default(false)
+  verificationCode String?        @unique @default(uuid()) @db.Text
+  createdAt        DateTime?      @default(now())
+  updatedAt        DateTime?      @updatedAt
+  PackagedFood     PackagedFood[]
+  Rating           Rating[]
+  FoodBox          FoodBox[]
+
+  @@map(name: "giver_users")
+}
+
+model NeederUser {
+  id               Int        @id @default(autoincrement())
+  email            String     @unique
+  password         String
+  photo            String?    @default("https://res.cloudinary.com/dzqkqzjxw/image/upload/v1622021008/needer-user-default-image.png")
+  phone            String?    @unique
+  dailyNeedQuota   Int?       @default(3)
+  birthday         DateTime?
+  firstName        String?    @default("")
+  lastName         String?    @default("")
+  verified         Boolean?   @default(false)
+  verificationCode String?    @unique @default(uuid()) @db.Text
+  createdAt        DateTime?  @default(now())
+  updatedAt        DateTime?  @updatedAt
+  Donation         Donation[]
+  Basket           Basket?
+  Rating           Rating[]
+  Address          Address[]
+  FoodBox          FoodBox[]
+
+  @@map(name: "needer_users")
+}
+
+model PackagedFood {
+  id          Int        @id @default(autoincrement())
+  name        String
+  photo       String?    @default("https://res.cloudinary.com/dzqkqzjxw/image/upload/v1622021008/packaged-food-default-image.png")
+  quantity    Int?       @default(1)
+  ownable     Boolean?   @default(true)
+  description String?    @default("")
+  createdAt   DateTime?  @default(now())
+  updatedAt   DateTime?  @updatedAt
+  expirationDate DateTime?
+  giverUserId Int?
+  giverUser   GiverUser? @relation(fields: [giverUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  Donation    Donation[]
+  Basket      Basket[]
+  FoodBox     FoodBox[]
+
+  @@map(name: "packaged_foods")
+}
+
+model OpenFood {
+  id               Int             @id @default(autoincrement())
+  name             String
+  photo            String?         @default("https://res.cloudinary.com/dzqkqzjxw/image/upload/v1622021008/open-food-default-image.png")
+  quantity         Int?            @default(1)
+  ownable          Boolean?        @default(true)
+  selfPickup       Boolean?        @default(false)
+  description      String?         @default("")
+  createdAt        DateTime?       @default(now())
+  updatedAt        DateTime?       @updatedAt
+  restaurantUserId Int?
+  restaurantUser   RestaurantUser? @relation(fields: [restaurantUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  Donation         Donation[]
+  Basket           Basket[]
+
+  @@map(name: "open_foods")
+}
+
+model Donation {
+  id             Int            @id @default(autoincrement())
+  status         DonationStatus
+  createdAt      DateTime?      @default(now())
+  updatedAt      DateTime?      @updatedAt
+  neederUserId   Int?
+  neederUser     NeederUser?    @relation(fields: [neederUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  openFoodId     Int?
+  openFood       OpenFood?      @relation(fields: [openFoodId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  packagedFoodId Int?
+  packagedFood   PackagedFood?  @relation(fields: [packagedFoodId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  Rating         Rating[]
+  FoodBox        FoodBox[]
+
+  @@map(name: "donations")
+}
+
+model Basket {
+  id             Int           @id @default(autoincrement())
+  createdAt      DateTime?     @default(now())
+  updatedAt      DateTime?     @updatedAt
+  neederUserId   Int?          @unique
+  neederUser     NeederUser?   @relation(fields: [neederUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  openFoodId     Int?
+  openFood       OpenFood?     @relation(fields: [openFoodId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  packagedFoodId Int?
+  packagedFood   PackagedFood? @relation(fields: [packagedFoodId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+
+  @@map(name: "baskets")
+}
+
+model Rating {
+  id               Int             @id @default(autoincrement())
+  createdAt        DateTime?       @default(now())
+  updatedAt        DateTime?       @updatedAt
+  rating           Int             @default(0) @db.SmallInt
+  donationId       Int?
+  donation         Donation?       @relation(fields: [donationId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  restaurantUserId Int?
+  restaurantUser   RestaurantUser? @relation(fields: [restaurantUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  giverUserId      Int?
+  giverUser        GiverUser?      @relation(fields: [giverUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  neederUserId     Int?
+  neederUser       NeederUser?     @relation(fields: [neederUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  review           String?         @default("") @db.Text
+
+  @@map(name: "ratings")
+}
+
+model Address {
+  id           Int         @id @default(autoincrement())
+  name         String      @db.VarChar(255)
+  address      String      @db.Text
+  city         String      @db.VarChar(255)
+  state        String      @db.VarChar(255)
+  country      String      @db.VarChar(255)
+  zip          String      @db.VarChar(255)
+  createdAt    DateTime?   @default(now())
+  updatedAt    DateTime?   @updatedAt
+  neederUserId Int?
+  neederUser   NeederUser? @relation(fields: [neederUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+
+  @@map(name: "addresses")
+}
+
+model FoodBox {
+  id             Int           @id @default(autoincrement())
+  password       String?
+  name           String        @db.VarChar(255)
+  createdAt      DateTime?     @default(now())
+  updatedAt      DateTime?     @updatedAt
+  packagedFoodId Int?
+  packagedFood   PackagedFood? @relation(fields: [packagedFoodId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  neederUserId   Int?
+  neederUser     NeederUser?   @relation(fields: [neederUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  giverUserId    Int?
+  giverUser      GiverUser?    @relation(fields: [giverUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  donationId     Int?
+  donation       Donation?     @relation(fields: [donationId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+
+  @@map(name: "food_boxes")
+}
