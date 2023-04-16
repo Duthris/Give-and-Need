@@ -38,7 +38,8 @@ app.use('/needers', neederRoutes);
 app.use('/restaurants', restaurantRoutes);
 app.use('/donations', donationRoutes);
 
-app.all('*', async () => {
+
+app.all('*', async (req) => {
     throw new NotFoundError();
 })
 
