@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import React from 'react';
 
 export default function Home() {
+    const [packagedFoods, setPackagedFoods] = React.useState([]);
     const loading = useSelector((state) => state.auth.loginLoading);
     const isLogged = useSelector((state) => state.auth.token);
     const user = useSelector((state) => state.auth.user);
@@ -32,20 +33,20 @@ export default function Home() {
             contentContainerStyle={{ flexGrow: 1 }}
         >
             <SafeAreaView style={styles.container}>
-            {isLogged && (
-                <>
-                    <Image source={user.photo ? { uri: user.photo } : null} style={styles.logo} />
-                    <Text style={styles.label}>Welcome to Give and Need {user.firstName + ` ` + user.lastName}</Text>
-                    <Paper.Button
-                        mode="contained"
-                        onPress={handleLogout}
-                        style={styles.button}
-                        icon="logout"
-                    >
-                        <Text style={styles.buttonText}>Logout</Text>
-                    </Paper.Button>
-                </>
-            )}
+                {isLogged && (
+                    <>
+                        <Image source={user.photo ? { uri: user.photo } : null} style={styles.logo} />
+                        <Text style={styles.label}>Welcome to Give & Need - {user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) + ` ` + user.lastName.charAt(0).toUpperCase() + user.lastName.slice(1)}</Text>
+                        <Paper.Button
+                            mode="contained"
+                            onPress={handleLogout}
+                            style={styles.button}
+                            icon="logout"
+                        >
+                            <Text style={styles.buttonText}>Logout</Text>
+                        </Paper.Button>
+                    </>
+                )}
             </SafeAreaView>
         </KeyboardAwareScrollView>
     );
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         marginTop: 10,
         resizeMode: 'contain'
-        
+
     },
     label: {
         fontSize: 20,

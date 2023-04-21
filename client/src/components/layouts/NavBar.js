@@ -10,18 +10,25 @@ import native from '../../../assets/native.png';
 import { Animated } from 'react-native';
 import HideWithKeyboard from 'react-native-hide-with-keyboard';
 import { EmptyScreen, getWidth } from '../../utils/functions';
+import { Menu } from 'react-native-paper';
 
 export default function NavBar({ navigation }) {
     const Tab = createBottomTabNavigator();
     const user = useSelector(state => state.auth.user);
     const tabOffset = React.useRef(new Animated.Value(0)).current;
 
+    const [visible, setVisible] = React.useState(false);
+
+    const openMenu = () => setVisible(true);
+
+    const closeMenu = () => setVisible(false);
+
     return (
         <>
             <Tab.Navigator
                 initialRouteName='Home'
                 screenOptions={({ route }) => ({
-                    tabBarIcon: ({ focused, color, size }) => {
+                    tabBarIcon: ({ focused, size }) => {
                         let iconName;
                         let routeName = route.name;
                         if (routeName === 'Home') {
@@ -76,6 +83,7 @@ export default function NavBar({ navigation }) {
                             options={{
                                 tabBarIcon: ({ focused }) => (
                                     <TouchableOpacity
+                                        onPress={openMenu}
                                     >
                                         <View style={{
                                             width: 55,
@@ -85,13 +93,41 @@ export default function NavBar({ navigation }) {
                                             justifyContent: 'center',
                                             alignItems: 'center',
                                             marginBottom: 30,
+                                            // shadow
+                                            shadowColor: 'black',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.25,
+                                            shadowRadius: 3.84,
+                                            elevation: 5,
                                         }}>
-                                            <Image source={native}
+                                            <Menu
+                                                visible={visible}
+                                                onDismiss={closeMenu}
+                                                anchorPosition={'top'}
                                                 style={{
-                                                    width: 22,
-                                                    height: 22,
-                                                    tintColor: 'white'
-                                                }} />
+                                                    position: 'absolute',
+                                                    left: 0,
+                                                    right: 0,
+                                                    padding: 50,
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    zIndex: 1000,
+                                                    borderRadius: 10,
+                                                    paddingHorizontal: 20,
+                                                }}
+                                                anchor={<Image source={native}
+                                                    style={{
+                                                        width: 22,
+                                                        height: 22,
+                                                        tintColor: 'white'
+                                                    }} />}>
+                                                <Menu.Item onPress={() => {
+                                                    navigation.navigate('Donations')
+                                                    closeMenu()
+                                                }} title="Donations" />
+                                                {/* <Menu.Item onPress={() => { }} title="Item 2" />
+                                                <Menu.Item onPress={() => { }} title="Item 3" /> */}
+                                            </Menu>
                                         </View>
                                     </TouchableOpacity>
                                 ),
