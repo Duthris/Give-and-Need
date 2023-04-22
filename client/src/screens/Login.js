@@ -12,6 +12,6 @@ export default function Login({ navigation }) {
             password: password
         })).then((res) => res.meta.requestStatus === 'fulfilled' && navigation.replace('Main'));
     }
-    
+
     return <LoginForm handleSubmit={handleSubmit} />;
 }

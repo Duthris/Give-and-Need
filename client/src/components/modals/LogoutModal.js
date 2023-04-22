@@ -1,9 +1,10 @@
-import { SafeAreaView, Text, StyleSheet } from "react-native";
+import { SafeAreaView, Text, StyleSheet, Image } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import * as Paper from 'react-native-paper';
 import { showToast } from '../../utils/functions';
 import store from '../../store/store';
 import { logout } from '../../store/auth';
+import logoutImage from '../../../assets/logout.png';
 
 export default function LogoutModal({ close }) {
     const navigation = useNavigation();
@@ -22,6 +23,7 @@ export default function LogoutModal({ close }) {
     return (
         <SafeAreaView style={styles.container}>
             <Text style={styles.label}>Are you sure you want to logout?</Text>
+            <Image source={logoutImage} style={{ width: 200, height: 200 }} />
             <Paper.Button
                 mode="contained"
                 onPress={handleLogout}
@@ -50,6 +52,7 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
         width: "100%",
+        height: "100%"
     },
     button: {
         backgroundColor: 'tomato',

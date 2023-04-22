@@ -5,6 +5,7 @@ import store from '../store/store.js';
 import { openModal } from '../store/modal';
 import { useSelector } from 'react-redux';
 import React from 'react';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function Home() {
     const [packagedFoods, setPackagedFoods] = React.useState([]);
@@ -32,22 +33,22 @@ export default function Home() {
             keyboardOpeningTime={0}
             contentContainerStyle={{ flexGrow: 1 }}
         >
-            <SafeAreaView style={styles.container}>
-                {isLogged && (
-                    <>
-                        <Image source={user.photo ? { uri: user.photo } : null} style={styles.logo} />
-                        <Text style={styles.label}>Welcome to Give & Need - {user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) + ` ` + user.lastName.charAt(0).toUpperCase() + user.lastName.slice(1)}</Text>
-                        <Paper.Button
-                            mode="contained"
-                            onPress={handleLogout}
-                            style={styles.button}
-                            icon="logout"
-                        >
-                            <Text style={styles.buttonText}>Logout</Text>
-                        </Paper.Button>
-                    </>
-                )}
-            </SafeAreaView>
+            {isLogged && (
+                <>
+                    <Paper.Appbar.Header style={{ backgroundColor: 'tomato' }} mode='center-aligned' statusBarHeight={Platform.OS === 'ios' ? 40 : 10}>
+                        <Paper.Appbar.Content style={{ color: 'white' }} titleStyle={{ fontWeight: 'bold' }} color={'white'} title="Give & Need" />
+                        <Paper.Appbar.Action icon="logout" color="white" onPress={handleLogout} />
+                    </Paper.Appbar.Header>
+                    <SafeAreaView style={styles.container}>
+                        {isLogged && (
+                            <>
+                                <Image source={user.photo ? { uri: user.photo } : null} style={styles.logo} />
+                                <Text style={styles.label}>Welcome to Give & Need - {user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) + ` ` + user.lastName.charAt(0).toUpperCase() + user.lastName.slice(1)}</Text>
+                            </>
+                        )}
+                    </SafeAreaView>
+                </>
+            )}
         </KeyboardAwareScrollView>
     );
 }

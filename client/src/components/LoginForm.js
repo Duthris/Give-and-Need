@@ -27,27 +27,27 @@ export default function LoginForm({ handleSubmit, noEmail = false }) {
                         value={userType}
                         onValueChange={setUserType}
                         buttons={[
-                        {
-                            value: 'needer',
-                            label: 'Needer',
-                            icon: 'account',
-                            checkedColor: 'white',
-                            style: { backgroundColor: userType === 'needer' ? 'tomato' : 'transparent' }
-                        },
-                        {
-                            value: 'giver',
-                            label: 'Giver',
-                            icon: 'account',
-                            checkedColor: 'white',
-                            style: { backgroundColor: userType === 'giver' ? 'tomato' : 'transparent' }
-                        },
-                        {
-                            value: 'restaurant',
-                            label: 'Restaurant',
-                            icon: 'store-marker',
-                            checkedColor: 'white',
-                            style: { backgroundColor: userType === 'restaurant' ? 'tomato' : 'transparent' }
-                        }
+                            {
+                                value: 'needer',
+                                label: 'Needer',
+                                icon: 'account',
+                                checkedColor: 'white',
+                                style: { backgroundColor: userType === 'needer' ? 'tomato' : 'transparent' }
+                            },
+                            {
+                                value: 'giver',
+                                label: 'Giver',
+                                icon: 'account',
+                                checkedColor: 'white',
+                                style: { backgroundColor: userType === 'giver' ? 'tomato' : 'transparent' }
+                            },
+                            {
+                                value: 'restaurant',
+                                label: 'Restaurant',
+                                icon: 'store-marker',
+                                checkedColor: 'white',
+                                style: { backgroundColor: userType === 'restaurant' ? 'tomato' : 'transparent' }
+                            }
                         ]}
                     />
                     <Text style={styles.label}>Email</Text>
@@ -131,7 +131,7 @@ export default function LoginForm({ handleSubmit, noEmail = false }) {
                     <TouchableOpacity
                         onPress={() => {
                             navigation.navigate('Register')
-                            }}
+                        }}
                     >
                         <Text style={styles.signUpText}>Don't have an account? Sign Up!</Text>
                     </TouchableOpacity>

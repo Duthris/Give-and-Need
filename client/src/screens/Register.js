@@ -52,11 +52,11 @@ export default function Register({ navigation }) {
             contentContainerStyle={{ flexGrow: 1 }}
         >
             <SafeAreaView style={styles.container}>
-            <Paper.SegmentedButtons
-                        style={styles.segmentedButtons}
-                        value={userType}
-                        onValueChange={setUserType}
-                        buttons={[
+                <Paper.SegmentedButtons
+                    style={styles.segmentedButtons}
+                    value={userType}
+                    onValueChange={setUserType}
+                    buttons={[
                         {
                             value: 'needer',
                             label: 'Needer',
@@ -71,8 +71,8 @@ export default function Register({ navigation }) {
                             checkedColor: 'white',
                             style: { backgroundColor: userType === 'giver' ? 'tomato' : 'transparent' }
                         },
-                        ]}
-                    />
+                    ]}
+                />
                 <Text style={styles.label}>First Name</Text>
                 <Paper.TextInput
                     label='First Name'

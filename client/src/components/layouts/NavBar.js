@@ -5,12 +5,13 @@ import Home from '../../screens/Home';
 import Login from '../../screens/Login';
 import Register from '../../screens/Register';
 import { useSelector } from "react-redux";
-import { View, Image, TouchableOpacity } from 'react-native';
+import { View, Image, TouchableOpacity, Platform } from 'react-native';
 import native from '../../../assets/native.png';
 import { Animated } from 'react-native';
 import HideWithKeyboard from 'react-native-hide-with-keyboard';
 import { EmptyScreen, getWidth } from '../../utils/functions';
 import { Menu } from 'react-native-paper';
+import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function NavBar({ navigation }) {
     const Tab = createBottomTabNavigator();
@@ -22,6 +23,7 @@ export default function NavBar({ navigation }) {
     const openMenu = () => setVisible(true);
 
     const closeMenu = () => setVisible(false);
+
 
     return (
         <>
@@ -41,17 +43,17 @@ export default function NavBar({ navigation }) {
                             iconName = focused ? 'create' : 'create-outline';
                         }
 
-                        return <Ionicons name={iconName} size={size} color={focused ? 'tomato' : 'gray'} />;
+                        return <Ionicons style={{ marginTop: 10 }} name={iconName} size={size} color={focused ? 'tomato' : 'gray'} />;
                     },
                     tabBarStyle: {
                         backgroundColor: '#fff',
                         position: 'absolute',
                         bottom: 20,
                         marginHorizontal: 20,
-                        height: 60,
+                        height: Platform.OS === 'ios' ? 80 : 60,
                         borderRadius: 10,
                         shadowColor: '#000',
-                        shadowOpacity: 0.06,
+                        shadowOpacity: 0.1,
                         shadowOffset: {
                             width: 10,
                             height: 10
@@ -59,7 +61,7 @@ export default function NavBar({ navigation }) {
                         paddingHorizontal: 20,
                     },
                     headerShown: false,
-                    tabBarActiveTintColor: 'red',
+                    tabBarActiveTintColor: 'tomato',
                     tabBarInactiveTintColor: 'gray',
                     tabBarHideOnKeyboard: true,
                 })}
@@ -88,15 +90,14 @@ export default function NavBar({ navigation }) {
                                         <View style={{
                                             width: 55,
                                             height: 55,
-                                            backgroundColor: 'red',
+                                            backgroundColor: 'tomato',
                                             borderRadius: 50,
                                             justifyContent: 'center',
                                             alignItems: 'center',
-                                            marginBottom: 30,
-                                            // shadow
+                                            marginBottom: Platform.OS === 'ios' ? 5 : 30,
                                             shadowColor: 'black',
                                             shadowOffset: { width: 0, height: 2 },
-                                            shadowOpacity: 0.25,
+                                            shadowOpacity: 0.5,
                                             shadowRadius: 3.84,
                                             elevation: 5,
                                         }}>
@@ -121,10 +122,15 @@ export default function NavBar({ navigation }) {
                                                         height: 22,
                                                         tintColor: 'white'
                                                     }} />}>
-                                                <Menu.Item onPress={() => {
-                                                    navigation.navigate('Donations')
-                                                    closeMenu()
-                                                }} title="Donations" />
+                                                <Menu.Item
+                                                    onPress={() => {
+                                                        navigation.navigate('Donations')
+                                                        closeMenu()
+                                                    }}
+                                                    title="Donations"
+                                                    leadingIcon={() => <Icons name="hand-heart" style={{ marginBottom: 2, marginLeft: 2 }} size={24} color="tomato" />}
+                                                    titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
+                                                />
                                                 {/* <Menu.Item onPress={() => { }} title="Item 2" />
                                                 <Menu.Item onPress={() => { }} title="Item 3" /> */}
                                             </Menu>
@@ -182,9 +188,9 @@ export default function NavBar({ navigation }) {
                 <Animated.ScrollView style={{
                     width: getWidth() - 20,
                     height: 2,
-                    backgroundColor: 'red',
+                    backgroundColor: 'tomato',
                     position: 'absolute',
-                    bottom: 79,
+                    bottom: Platform.OS === 'ios' ? 100 : 79,
                     left: 69,
                     borderRadius: 50,
                     transform: [
