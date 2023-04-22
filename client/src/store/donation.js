@@ -6,6 +6,7 @@ const initialState = {
     donationLoading: false,
     donationError: null,
     packagedFoods: [],
+    restaurantFoods: [],
 }
 
 export const getPackagedFoods = createAsyncThunk(
@@ -13,6 +14,19 @@ export const getPackagedFoods = createAsyncThunk(
     async (data, { rejectWithValue }) => {
         try {
             const response = await api.get('/donations/packaged-foods');
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
+export const getRestaurantFoods = createAsyncThunk(
+    'donations/restaurant-foods',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/donations/open-foods');
             return response.data;
         } catch (err) {
             showErrorToast(err.response.data.message);
@@ -43,6 +57,19 @@ const donationSlice = createSlice({
                 else state.donationError = action.error.message;
                 state.donationLoading = false;
             })
+            .addCase(getRestaurantFoods.pending, (state) => {
+                state.donationLoading = true;
+            })
+            .addCase(getRestaurantFoods.fulfilled, (state, { payload }) => {
+                state.donationLoading = false;
+                state.restaurantFoods = payload.data;
+            })
+            .addCase(getRestaurantFoods.rejected, (state, action) => {
+                if (action.payload) state.donationError = action.payload.error;
+                else state.donationError = action.error.message;
+                state.donationLoading = false;
+            })
+
 })
 
 export const { clearDonationError } = donationSlice.actions;

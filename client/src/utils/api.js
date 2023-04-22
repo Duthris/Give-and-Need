@@ -5,7 +5,7 @@ const client = API_URL || 'http://localhost:4000';
 
 const get = async (url, params, token, axiosConfig) => {
     const headers = axiosConfig ? { ...axiosConfig.headers } : {}
-    if (token) headers['x-auth'] = token
+    if (token) headers['Authentication'] = `Bearer ${token}`
     return axios.get(`${client}${url}`, {
         ...axiosConfig,
         headers,
@@ -15,7 +15,7 @@ const get = async (url, params, token, axiosConfig) => {
 
 const post = async (url, data, token, axiosConfig) => {
     const headers = axiosConfig ? { ...axiosConfig.headers } : {}
-    if (token) headers['x-auth'] = token
+    if (token) headers['Authentication'] = `Bearer ${token}`
     return axios.post(`${client}${url}`, data, {
         ...axiosConfig,
         headers,
@@ -24,7 +24,7 @@ const post = async (url, data, token, axiosConfig) => {
 
 const remove = async (url, token, axiosConfig) => {
     const headers = axiosConfig ? { ...axiosConfig.headers } : {}
-    if (token) headers['x-auth'] = token
+    if (token) headers['Authentication'] = `Bearer ${token}`
     return axios.delete(`${client}${url}`, {
         ...axiosConfig,
         headers,
@@ -33,7 +33,7 @@ const remove = async (url, token, axiosConfig) => {
 
 const put = async (url, data, token, axiosConfig) => {
     const headers = axiosConfig ? { ...axiosConfig.headers } : {}
-    if (token) headers['x-auth'] = token
+    if (token) headers['Authentication'] = `Bearer ${token}`
     return axios.put(`${client}${url}`, data, {
         ...axiosConfig,
         headers,
