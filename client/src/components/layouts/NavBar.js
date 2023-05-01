@@ -16,6 +16,7 @@ import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 export default function NavBar({ navigation }) {
     const Tab = createBottomTabNavigator();
     const user = useSelector(state => state.auth.user);
+    const role = useSelector(state => state.auth.role);
     const tabOffset = React.useRef(new Animated.Value(0)).current;
 
     const [visible, setVisible] = React.useState(false);
@@ -131,8 +132,17 @@ export default function NavBar({ navigation }) {
                                                     leadingIcon={() => <Icons name="hand-heart" style={{ marginBottom: 2, marginLeft: 2 }} size={24} color="tomato" />}
                                                     titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
                                                 />
-                                                {/* <Menu.Item onPress={() => { }} title="Item 2" />
-                                                <Menu.Item onPress={() => { }} title="Item 3" /> */}
+                                                {role === 'needer' && (
+                                                    <Menu.Item
+                                                        onPress={() => {
+                                                            navigation.navigate('Needs')
+                                                            closeMenu()
+                                                        }}
+                                                        title="My Needs"
+                                                        leadingIcon={() => <Icons name="cart-heart" style={{ marginBottom: 2 }} size={26} color="tomato" />}
+                                                        titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
+                                                    />
+                                                )}
                                             </Menu>
                                         </View>
                                     </TouchableOpacity>

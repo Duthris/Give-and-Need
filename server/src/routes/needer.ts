@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { 
     neederLogin, neederRegister, getNeeder, getNeeders, verifyNeeder, deleteNeeder, addFoodToBasket, getNeederBasket, needFood, getNeeds, getNeed, clearBasket, updateNeeder,
-    resendFoodBoxPassword,
+    resendFoodBoxPassword, markAsCompletedNeed
 } from '../controllers/needer.controller';
 import { validateRequest } from '../middlewares/validate.request';
 import { isAuthenticated } from '../middlewares/is.authenticated';
@@ -28,5 +28,6 @@ router.get('/my-needs/:id', isAuthenticated, validateRequest, isNeeder, getNeed)
 router.put('/clear-basket', isAuthenticated, validateRequest, isNeeder, clearBasket);
 router.put('/update-account', isAuthenticated, validateRequest, isNeeder, updateNeeder);
 router.get('/resend-food-box-password/:id', resendFoodBoxPassword);
+router.put('/mark-as-completed-need/:id', isAuthenticated, validateRequest, isNeeder, markAsCompletedNeed);
 
 export default router;

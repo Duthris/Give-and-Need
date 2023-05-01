@@ -47,3 +47,66 @@ export function generateRandomName() {
         separator: ' '
     })
 }
+
+export const getIconNameByStatus = (status) => {
+    switch (status) {
+        case 'pending':
+            return 'account-clock-outline';
+        case 'accepted':
+            return 'account-check-outline';
+        case 'rejected':
+            return 'account-remove-outline';
+        case 'onTheWay':
+            return 'truck-delivery-outline';
+        case 'inBox':
+            return 'inbox-arrow-down';
+        case 'takenFromBox':
+            return 'inbox-remove';
+        case 'completed':
+            return 'check-circle-outline';
+        default:
+            return 'account-clock-outline';
+    }
+}
+
+export const getTextByStatus = (status) => {
+    switch (status) {
+        case 'pending':
+            return 'Pending';
+        case 'accepted':
+            return 'Accepted';
+        case 'rejected':
+            return 'Rejected';
+        case 'onTheWay':
+            return 'On the way';
+        case 'inBox':
+            return 'Put in box';
+        case 'takenFromBox':
+            return 'Taken from box';
+        case 'completed':
+            return 'Completed';
+        default:
+            return 'Pending';
+    }
+}
+
+export const getBackgrounColorByStatus = (status) => {
+    switch (status) {
+        case 'pending':
+            return '#DAC13F';
+        case 'accepted':
+            return '#B8E986';
+        case 'rejected':
+            return 'red';
+        case 'onTheWay':
+            return '#D3A640';
+        case 'inBox':
+            return '#A486E9';
+        case 'takenFromBox':
+            return '#78F8C3';
+        case 'completed':
+            return 'green';
+        default:
+            return 'tomato';
+    }
+}

@@ -6,6 +6,7 @@ const initialState = {
     authLoading: false,
     authError: null,
     token: null,
+    role: null,
     user: null,
 }
 
@@ -84,88 +85,91 @@ const authSlice = createSlice({
         },
         clearAuthError: (state) => {
             state.authError = null;
+        },
+        setRole: (state, { payload }) => {
+            state.role = payload;
         }
     },
-    extraReducers: (builder) => 
-    builder
-        .addCase(neederLogin.fulfilled, (state, { payload }) => {
-            if (payload.data.token) {
-                state.user = payload.data;
-                state.token = payload.data.token;
-                state.authError = null;
+    extraReducers: (builder) =>
+        builder
+            .addCase(neederLogin.fulfilled, (state, { payload }) => {
+                if (payload.data.token) {
+                    state.user = payload.data;
+                    state.token = payload.data.token;
+                    state.authError = null;
+                    state.authLoading = false;
+                }
+            })
+            .addCase(neederLogin.rejected, (state, action) => {
+                if (action.payload) state.error = action.payload.error;
+                else state.authError = action.error.message;
                 state.authLoading = false;
-            }
-        })
-        .addCase(neederLogin.rejected, (state, action) => {
-            if (action.payload) state.error = action.payload.error;
-            else state.authError = action.error.message;
-            state.authLoading = false;
-        })
-        .addCase(neederLogin.pending, (state) => {
-            state.authLoading = true;
-        })
-        .addCase(giverLogin.fulfilled, (state, { payload }) => {
-            if (payload.data.token) {
-                state.user = payload.data;
-                state.token = payload.data.token;
-                state.authError = null;
+            })
+            .addCase(neederLogin.pending, (state) => {
+                state.authLoading = true;
+            })
+            .addCase(giverLogin.fulfilled, (state, { payload }) => {
+                if (payload.data.token) {
+                    state.user = payload.data;
+                    state.token = payload.data.token;
+                    state.authError = null;
+                    state.authLoading = false;
+                }
+            })
+            .addCase(giverLogin.rejected, (state, action) => {
+                if (action.payload) state.error = action.payload.error;
+                else state.authError = action.error.message;
                 state.authLoading = false;
-            }
-        })
-        .addCase(giverLogin.rejected, (state, action) => {
-            if (action.payload) state.error = action.payload.error;
-            else state.authError = action.error.message;
-            state.authLoading = false;
-        })
-        .addCase(giverLogin.pending, (state) => {
-            state.authLoading = true;
-        })
-        .addCase(restaurantLogin.fulfilled, (state, { payload }) => {
-            if (payload.data.token) {
-                state.user = payload.data;
-                state.token = payload.data.token;
-                state.authError = null;
+            })
+            .addCase(giverLogin.pending, (state) => {
+                state.authLoading = true;
+            })
+            .addCase(restaurantLogin.fulfilled, (state, { payload }) => {
+                if (payload.data.token) {
+                    state.user = payload.data;
+                    state.token = payload.data.token;
+                    state.authError = null;
+                    state.authLoading = false;
+                }
+            })
+            .addCase(restaurantLogin.rejected, (state, action) => {
+                if (action.payload) state.error = action.payload.error;
+                else state.authError = action.error.message;
                 state.authLoading = false;
-            }
-        })
-        .addCase(restaurantLogin.rejected, (state, action) => {
-            if (action.payload) state.error = action.payload.error;
-            else state.authError = action.error.message;
-            state.authLoading = false;
-        })
-        .addCase(restaurantLogin.pending, (state) => {
-            state.authLoading = true;
-        })
-        .addCase(neederRegister.fulfilled, (state, { payload }) => {
-            if (payload.data.token) {
-                state.authError = null;
+            })
+            .addCase(restaurantLogin.pending, (state) => {
+                state.authLoading = true;
+            })
+            .addCase(neederRegister.fulfilled, (state, { payload }) => {
+                if (payload.data.token) {
+                    state.authError = null;
+                    state.authLoading = false;
+                }
+            })
+            .addCase(neederRegister.rejected, (state, action) => {
+                if (action.payload) state.error = action.payload.error;
+                else state.authError = action.error.message;
                 state.authLoading = false;
-            }
-        })
-        .addCase(neederRegister.rejected, (state, action) => {
-            if (action.payload) state.error = action.payload.error;
-            else state.authError = action.error.message;
-            state.authLoading = false;
-        })
-        .addCase(neederRegister.pending, (state) => {
-            state.authLoading = true;
-        })
-        .addCase(giverRegister.fulfilled, (state, { payload }) => {
-            if (payload.data.token) {
-                state.authError = null;
+            })
+            .addCase(neederRegister.pending, (state) => {
+                state.authLoading = true;
+            })
+            .addCase(giverRegister.fulfilled, (state, { payload }) => {
+                if (payload.data.token) {
+                    state.authError = null;
+                    state.authLoading = false;
+                }
+            })
+            .addCase(giverRegister.rejected, (state, action) => {
+                if (action.payload) state.error = action.payload.error;
+                else state.authError = action.error.message;
                 state.authLoading = false;
-            }
-        })
-        .addCase(giverRegister.rejected, (state, action) => {
-            if (action.payload) state.error = action.payload.error;
-            else state.authError = action.error.message;
-            state.authLoading = false;
-        })
-        .addCase(giverRegister.pending, (state) => {
-            state.authLoading = true;
-        })
+            })
+            .addCase(giverRegister.pending, (state) => {
+                state.authLoading = true;
+            })
 })
 
-export const { logout, clearAuthError } = authSlice.actions;
+export const { logout, clearAuthError, setRole } = authSlice.actions;
 
 export default authSlice.reducer;

@@ -27,6 +27,7 @@ const Donations = ({ navigation }) => {
     const [scrolledToEndRestaurant, setScrolledToEndRestaurant] = React.useState(false);
     const packagedFoodsSelector = useSelector((state) => state.donation.packagedFoods);
     const restaurantFoodsSelector = useSelector((state) => state.donation.restaurantFoods);
+    const role = useSelector((state) => state.auth.role);
 
     const handleScrollToEnd = ({ layoutMeasurement, contentOffset, contentSize }) => {
         const paddingToBottom = 20;
@@ -101,7 +102,7 @@ const Donations = ({ navigation }) => {
     React.useEffect(() => {
         if (packagedFoodsSelector.length > 0) {
             setActiveItem(packagedFoodsSelector[activeIndex]);
-            let filtered = packagedFoodsSelector.filter((item) => item.photo !== null && item.ownable !== false && item.quantity > 0);
+            let filtered = packagedFoodsSelector.filter((item) => item.photo !== null && item.ownable !== false && item.quantity > 0 && (item.expirationDate === null || moment(item.expirationDate).diff(moment(), 'days') > 0));
             setPackagedFoods(filtered);
         }
     }, [packagedFoodsSelector])
@@ -130,7 +131,7 @@ const Donations = ({ navigation }) => {
 
     return (
         <>
-            <Appbar.Header style={{ backgroundColor: 'tomato' }} mode='center-aligned' statusBarHeight={Platform.OS === 'ios' ? 40 : 10}>
+            <Appbar.Header style={{ backgroundColor: 'tomato' }} mode='center-aligned' statusBarHeight={Platform.OS === 'ios' ? 40 : 25}>
                 <Appbar.BackAction color={'white'} onPress={() => navigation.goBack()} />
                 <Appbar.Content style={{ color: 'white' }} color={'white'} title="Donations" />
             </Appbar.Header>
@@ -162,11 +163,11 @@ const Donations = ({ navigation }) => {
                             <Portal>
                                 <Dialog visible={visible} onDismiss={hideDialog}>
                                     <Dialog.Title style={{ fontSize: 28, fontWeight: 800, color: 'tomato' }}>{activeItem.name}</Dialog.Title>
-                                    {activeItem.expirationDate && moment(activeItem.expirationDate).isBefore(moment().add(1, 'week')) && (
+                                    {activeItem.expirationDate && moment(activeItem.expirationDate).isBefore(moment().add(1, 'week')) && moment(activeItem.expirationDate).isAfter(moment()) && (
                                         <Chip icon={() => <Icon name="alert" size={22} color="yellow" />}
                                             style={{ backgroundColor: 'tomato', width: '90%', alignSelf: 'center', marginBottom: 10 }}
                                         >
-                                            <Text>
+                                            <Text style={{ color: 'white' }}>
                                                 This item will expire in {moment(activeItem.expirationDate).fromNow()}.
                                             </Text>
                                         </Chip>
@@ -180,75 +181,79 @@ const Donations = ({ navigation }) => {
                                             </Text>
                                         </ScrollView>
                                     </Dialog.ScrollArea>
-                                    <Dialog.Content style={{ alignItems: 'center', height: 100 }}>
+                                    <Dialog.Content style={{ alignItems: 'center', height: role === 'needer' ? 100 : 300 }}>
                                         <Image source={{ uri: activeItem.photo }} style={styles.dialogImage} />
                                     </Dialog.Content>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 100 }}>
-                                        <Checkbox.Android
-                                            status={checked ? 'checked' : 'unchecked'}
-                                            color={'tomato'}
-                                            style={{ marginLeft: -10 }}
-                                            onPress={showTerms}
-                                        />
-                                        <Text style={{ fontWeight: 500, marginBottom: 1, color: checked ? 'tomato' : '#000' }}>
-                                            I have read the terms and conditions and agreed.
-                                        </Text>
-                                        <Portal>
-                                            <Dialog visible={openTerms} onDismiss={hideTerms}>
-                                                <Dialog.Title style={{ fontSize: 28, fontWeight: 800, color: 'tomato' }}>Terms and Conditions</Dialog.Title>
-                                                <Dialog.ScrollArea style={{ maxHeight: 220, paddingHorizontal: 0 }}>
-                                                    <ScrollView
-                                                        contentContainerStyle={{ paddingHorizontal: 24 }}
-                                                        onMomentumScrollEnd={({ nativeEvent }) => {
-                                                            handleScrollToEnd(nativeEvent)
-                                                        }}
-                                                    >
-                                                        <Text style={{ fontSize: 18, padding: 10 }}>
-                                                            {packagedFoodTerms}
-                                                        </Text>
-                                                    </ScrollView>
-                                                </Dialog.ScrollArea>
-                                                <Dialog.Actions>
-                                                    <Button
-                                                        mode={'elevated'}
-                                                        icon={() => <Icon name="check-circle" size={22} color="white" />}
-                                                        style={!scrolledToEnd ? styles.disabledButtonStyle : styles.buttonStyle}
-                                                        disabled={!scrolledToEnd}
-                                                        onPress={agreeTerms}
-                                                    >
-                                                        <Text style={{ color: 'white', fontWeight: 600 }}>Agree</Text>
-                                                    </Button>
-                                                    <Button
-                                                        mode={'elevated'}
-                                                        icon={() => <Icon name="cancel" size={22} color="white" />}
-                                                        style={styles.buttonStyle}
-                                                        onPress={hideTerms}
-                                                    >
-                                                        <Text style={{ color: 'white', fontWeight: 600 }}>Cancel</Text>
-                                                    </Button>
-                                                </Dialog.Actions>
-                                            </Dialog>
-                                        </Portal>
-                                    </View>
-                                    <Dialog.Actions>
-                                        <Button
-                                            mode={'elevated'}
-                                            icon={() => <Icon name="hand-heart" style={{ marginBottom: 5 }} size={22} color="white" />}
-                                            disabled={!checked}
-                                            onPress={hideDialog}
-                                            style={checked ? styles.buttonStyle : styles.disabledButtonStyle}
-                                        >
-                                            <Text style={{ color: 'white', fontWeight: 600 }}>Need</Text>
-                                        </Button>
-                                        <Button
-                                            mode={'elevated'}
-                                            icon={() => <Icon name="cancel" size={22} color="white" />}
-                                            style={styles.buttonStyle}
-                                            onPress={hideDialog}
-                                        >
-                                            <Text style={{ color: 'white', fontWeight: 600 }}>Cancel</Text>
-                                        </Button>
-                                    </Dialog.Actions>
+                                    {role === 'needer' && (
+                                        <>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 100 }}>
+                                                <Checkbox.Android
+                                                    status={checked ? 'checked' : 'unchecked'}
+                                                    color={'tomato'}
+                                                    style={{ marginLeft: -10 }}
+                                                    onPress={showTerms}
+                                                />
+                                                <Text style={{ fontWeight: 500, marginBottom: 1, color: checked ? 'tomato' : '#000' }}>
+                                                    I have read the terms and conditions.
+                                                </Text>
+                                                <Portal>
+                                                    <Dialog visible={openTerms} onDismiss={hideTerms}>
+                                                        <Dialog.Title style={{ fontSize: 28, fontWeight: 800, color: 'tomato' }}>Terms and Conditions</Dialog.Title>
+                                                        <Dialog.ScrollArea style={{ maxHeight: 220, paddingHorizontal: 0 }}>
+                                                            <ScrollView
+                                                                contentContainerStyle={{ paddingHorizontal: 24 }}
+                                                                onMomentumScrollEnd={({ nativeEvent }) => {
+                                                                    handleScrollToEnd(nativeEvent)
+                                                                }}
+                                                            >
+                                                                <Text style={{ fontSize: 18, padding: 10 }}>
+                                                                    {packagedFoodTerms}
+                                                                </Text>
+                                                            </ScrollView>
+                                                        </Dialog.ScrollArea>
+                                                        <Dialog.Actions>
+                                                            <Button
+                                                                mode={'elevated'}
+                                                                icon={() => <Icon name="check-circle" size={22} color="white" />}
+                                                                style={!scrolledToEnd ? styles.disabledButtonStyle : styles.buttonStyle}
+                                                                disabled={!scrolledToEnd}
+                                                                onPress={agreeTerms}
+                                                            >
+                                                                <Text style={{ color: 'white', fontWeight: 600 }}>Agree</Text>
+                                                            </Button>
+                                                            <Button
+                                                                mode={'elevated'}
+                                                                icon={() => <Icon name="cancel" size={22} color="white" />}
+                                                                style={styles.buttonStyle}
+                                                                onPress={hideTerms}
+                                                            >
+                                                                <Text style={{ color: 'white', fontWeight: 600 }}>Cancel</Text>
+                                                            </Button>
+                                                        </Dialog.Actions>
+                                                    </Dialog>
+                                                </Portal>
+                                            </View>
+                                            <Dialog.Actions>
+                                                <Button
+                                                    mode={'elevated'}
+                                                    icon={() => <Icon name="hand-heart" style={{ marginBottom: 5 }} size={22} color="white" />}
+                                                    disabled={!checked}
+                                                    onPress={hideDialog}
+                                                    style={checked ? styles.buttonStyle : styles.disabledButtonStyle}
+                                                >
+                                                    <Text style={{ color: 'white', fontWeight: 600 }}>Need</Text>
+                                                </Button>
+                                                <Button
+                                                    mode={'elevated'}
+                                                    icon={() => <Icon name="cancel" size={22} color="white" />}
+                                                    style={styles.buttonStyle}
+                                                    onPress={hideDialog}
+                                                >
+                                                    <Text style={{ color: 'white', fontWeight: 600 }}>Cancel</Text>
+                                                </Button>
+                                            </Dialog.Actions>
+                                        </>
+                                    )}
                                 </Dialog>
                             </Portal>
                         </>
@@ -285,7 +290,7 @@ const Donations = ({ navigation }) => {
                                         <Chip icon={() => <Icon name="alert" size={22} color="yellow" />}
                                             style={{ backgroundColor: 'tomato', width: '90%', alignSelf: 'center', marginBottom: 10 }}
                                         >
-                                            <Text>
+                                            <Text style={{ color: 'white' }}>
                                                 This item will expire in {moment(activeItemRestaurant.expirationDate).fromNow()}.
                                             </Text>
                                         </Chip>
@@ -310,7 +315,7 @@ const Donations = ({ navigation }) => {
                                             onPress={showTermsRestaurant}
                                         />
                                         <Text style={{ fontWeight: 500, marginBottom: 1, color: checkedRestaurant ? 'tomato' : '#000' }}>
-                                            I have read the terms and conditions and agreed.
+                                            I have read the terms and conditions.
                                         </Text>
                                         <Portal>
                                             <Dialog visible={openTermsRestaurant} onDismiss={hideTermsRestaurant}>

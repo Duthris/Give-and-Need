@@ -2,15 +2,18 @@ import React from 'react';
 import Toast from 'react-native-toast-message';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Provider as PaperProvider } from 'react-native-paper';
 import { Provider } from 'react-redux';
 import axios from 'axios'
 import store from './src/store/store'
-import { Provider as PaperProvider } from 'react-native-paper';
 import ModalOpen from './src/constants/ModalOpen';
 import Splash from './src/constants/Splash';
 import NavBar from './src/components/layouts/NavBar';
 import Donations from './src/screens/Donations';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Needs from './src/screens/Needs';
+import PackagedNeed from './src/screens/PackagedNeed';
+import RestaurantNeed from './src/screens/RestaurantNeed';
 
 export default function App() {
   axios.interceptors.request.use(
@@ -51,6 +54,27 @@ export default function App() {
               <Stack.Screen
                 name='Donations'
                 component={Donations}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name='Needs'
+                component={Needs}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name='PackagedNeed'
+                component={PackagedNeed}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name='RestaurantNeed'
+                component={RestaurantNeed}
                 options={{
                   headerShown: false,
                 }}

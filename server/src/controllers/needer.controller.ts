@@ -405,9 +405,9 @@ export const needFood = async (req: Request, res: Response) => {
             });
 
             let code = voucher_codes.generate({
-                length: 8,
+                length: 6,
                 count: 1,
-                charset: voucher_codes.charset("alphanumeric")
+                charset: voucher_codes.charset("numbers")
             });
 
             const foodBox = await prisma.foodBox.findUnique({
@@ -547,6 +547,11 @@ export const getNeeds = async (req: Request, res: Response) => {
             const needs = await prisma.donation.findMany({
                 where: {
                     neederUserId: Number(id)
+                },
+                include: {
+                    openFood: true,
+                    packagedFood: true,
+                    FoodBox: true,
                 }
             });
             res.status(200).json({ success: true, data: needs });
@@ -613,7 +618,7 @@ export const resendFoodBoxPassword = async (req: Request, res: Response) => {
                     id: Number(needId)
                 }
             });
-                        
+
             if (!isNeeder) throw new BadRequestError('Need not found!');
             if (isNeeder.neederUserId !== Number(id)) throw new BadRequestError('You are not the owner of this need!');
 
@@ -625,6 +630,50 @@ export const resendFoodBoxPassword = async (req: Request, res: Response) => {
             if (!foodBox[0].password) throw new BadRequestError('Food box not found!');
             await sendEmail(needer.email, 'Your Food Box Password for Your Need', `Food Box Password: ${foodBox[0].password}`);
             res.status(200).json({ success: true, data: foodBox });
+        } catch (e: any) {
+            res.status(400).json({ success: false, message: e.message });
+        }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const markAsCompletedNeed = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        const needId = req.params.id;
+        try {
+            const needer = await prisma.neederUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
+            if (!needer) throw new BadRequestError('Needer not found!');
+            const isNeeder = await prisma.donation.findUnique({
+                where: {
+                    id: Number(needId)
+                }
+            });
+            if (!isNeeder) throw new BadRequestError('Need not found!');
+            if (isNeeder.neederUserId !== Number(id)) throw new BadRequestError('You are not the owner of this need!');
+
+            const need = await prisma.donation.update({
+                where: {
+                    id: Number(needId)
+                },
+                data: {
+                    status: 'completed'
+                },
+                include: {
+                    openFood: true,
+                    packagedFood: true,
+                    FoodBox: true,
+                }
+            });
+            res.status(200).json({ success: true, data: need });
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });
         }
