@@ -74,7 +74,7 @@ export default function OwnedPackagedGive({ navigation, route }) {
                         </Card.Content>
                     </ScrollView>
                     <Card.Actions style={{ justifyContent: 'space-around' }}>
-                        {give.status !== 'rejected' && give.status !== 'completed' && give.status !== 'ianBox' && (
+                        {give.status !== 'rejected' && give.status !== 'completed' && give.status !== 'inBox' && (
                             <Button
                                 style={styles.buttonStyle}
                                 mode='contained'
