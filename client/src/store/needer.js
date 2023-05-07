@@ -6,7 +6,21 @@ const initialState = {
     neederLoading: false,
     neederError: null,
     needs: [],
+    needer: null,
 }
+
+export const getNeederDetail = createAsyncThunk(
+    'needer/detail',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/needers/needer/${data.id}`);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
 
 export const getNeeds = createAsyncThunk(
     'needer/needs',
@@ -34,6 +48,19 @@ export const markNeedAsCompleted = createAsyncThunk(
     }
 )
 
+export const needFood = createAsyncThunk(
+    'needer/need-food',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/needers/need-food', data);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
 const neederSlice = createSlice({
     name: 'needer',
     initialState,
@@ -44,6 +71,18 @@ const neederSlice = createSlice({
     },
     extraReducers: (builder) =>
         builder
+            .addCase(getNeederDetail.pending, (state) => {
+                state.neederLoading = true;
+            })
+            .addCase(getNeederDetail.fulfilled, (state, { payload }) => {
+                state.neederLoading = false;
+                state.needer = payload.data;
+            })
+            .addCase(getNeederDetail.rejected, (state, action) => {
+                if (action.payload) state.neederError = action.payload.error;
+                else state.neederError = action.error.message;
+                state.neederLoading = false;
+            })
             .addCase(getNeeds.pending, (state) => {
                 state.neederLoading = true;
             })
@@ -67,6 +106,18 @@ const neederSlice = createSlice({
                 state.neederLoading = false;
             })
             .addCase(markNeedAsCompleted.rejected, (state, action) => {
+                if (action.payload) state.neederError = action.payload.error;
+                else state.neederError = action.error.message;
+                state.neederLoading = false;
+            })
+            .addCase(needFood.pending, (state) => {
+                state.neederLoading = true;
+            })
+            .addCase(needFood.fulfilled, (state, { payload }) => {
+                state.neederLoading = false;
+                console.log(payload.data);
+            })
+            .addCase(needFood.rejected, (state, action) => {
                 if (action.payload) state.neederError = action.payload.error;
                 else state.neederError = action.error.message;
                 state.neederLoading = false;

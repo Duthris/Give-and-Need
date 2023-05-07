@@ -129,7 +129,7 @@ export default function NavBar({ navigation }) {
                                                         closeMenu()
                                                     }}
                                                     title="Donations"
-                                                    leadingIcon={() => <Icons name="hand-heart" style={{ marginBottom: 2, marginLeft: 2 }} size={24} color="tomato" />}
+                                                    leadingIcon={() => <Icons name="cards-heart" style={{ marginBottom: 2, marginLeft: 2 }} size={24} color="tomato" />}
                                                     titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
                                                 />
                                                 {role === 'needer' && (
@@ -140,6 +140,17 @@ export default function NavBar({ navigation }) {
                                                         }}
                                                         title="My Needs"
                                                         leadingIcon={() => <Icons name="cart-heart" style={{ marginBottom: 2 }} size={26} color="tomato" />}
+                                                        titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
+                                                    />
+                                                )}
+                                                {role === 'giver' && (
+                                                    <Menu.Item
+                                                        onPress={() => {
+                                                            navigation.navigate('Gives')
+                                                            closeMenu()
+                                                        }}
+                                                        title="My Gives"
+                                                        leadingIcon={() => <Icons name="hand-heart" style={{ marginBottom: 2, marginLeft: 2 }} size={24} color="tomato" />}
                                                         titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
                                                     />
                                                 )}

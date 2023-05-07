@@ -3,6 +3,7 @@ import { closeModal, openModal } from "../store/modal";
 import Toast from 'react-native-toast-message'
 import { View, Dimensions } from "react-native";
 import { uniqueNamesGenerator, names } from "unique-names-generator";
+import { Marker } from "react-native-maps";
 
 export const modalOpen = (name, data = false) => {
     store.dispatch(openModal({

@@ -4,7 +4,6 @@ import { comparePassword, hashPassword } from '../utils/password';
 import generateToken from '../utils/generateToken';
 import { BadRequestError } from '../errors/bad-request-error';
 import { getIdFromToken } from '../utils/token';
-import { NotAuthorizedError } from '../errors/not-authorized-error';
 import { sendEmail } from '../utils/sendMail';
 var voucher_codes = require('voucher-code-generator');
 import { DonationStatus } from '@prisma/client';
@@ -308,8 +307,11 @@ export const getDonations = async (req: Request, res: Response) => {
             if (!giver) throw new BadRequestError('Giver not found!');
             const packagedFoods = await prisma.packagedFood.findMany({
                 where: {
-                    giverUserId: Number(id)
-                }
+                    giverUserId: Number(id),
+                    quantity: {
+                        gt: 0
+                    }
+                },
             })
             res.status(200).json({ success: true, data: packagedFoods });
         } catch (e: any) {
@@ -357,14 +359,14 @@ export const updateDonation = async (req: Request, res: Response) => {
     try {
         const id = getIdFromToken(req);
         const packagedFoodId = req.params.id;
-        const { name, photo, quantity, description } = req.body;
+        const { name, photo, quantity, description, expirationDate } = req.body;
         try {
             const giver = await prisma.giverUser.findUnique({
                 where: {
                     id: Number(id)
                 }
             });
-            if (!giver) throw new BadRequestError('Giver not found!');            
+            if (!giver) throw new BadRequestError('Giver not found!');
             const packagedFood = await prisma.packagedFood.findUnique({
                 where: {
                     id: Number(packagedFoodId)
@@ -380,10 +382,159 @@ export const updateDonation = async (req: Request, res: Response) => {
                     name: name || packagedFood.name,
                     photo: photo || packagedFood.photo,
                     quantity: Number(quantity) || packagedFood.quantity,
-                    description: description || packagedFood.description
+                    description: description || packagedFood.description,
+                    expirationDate: expirationDate || packagedFood.expirationDate
                 }
             })
             const { createdAt, updatedAt, ...rest } = updatedPackagedFood;
+            res.status(200).json({ success: true, data: { ...rest } });
+        } catch (e: any) {
+            res.status(400).json({ success: false, message: e.message });
+        }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const getOwnedDonations = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        try {
+            const giver = await prisma.giverUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
+            if (!giver) throw new BadRequestError('Giver not found!');
+
+            const packagedFoods = await prisma.packagedFood.findMany({
+                where: {
+                    giverUserId: Number(id)
+                },
+            })
+
+            const donations = await Promise.all(packagedFoods.map(async (packagedFood) => {
+                const donation = await prisma.donation.findFirst({
+                    where: {
+                        packagedFoodId: packagedFood.id
+                    },
+                    include: {
+                        packagedFood: true,
+                        FoodBox: true
+                    }
+                })
+                return donation
+            }))
+
+            const filteredDonations = donations.filter((donation) => donation !== null);
+
+            res.status(200).json({ success: true, data: filteredDonations });
+        } catch (e: any) {
+            res.status(400).json({ success: false, message: e.message });
+        }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const updateGiveStatusToNextStep = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        const { id: donationId } = req.params;
+        try {
+            const giver = await prisma.giverUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
+            if (!giver) throw new BadRequestError('Giver not found!');
+            const donation = await prisma.donation.findUnique({
+                where: {
+                    id: Number(donationId)
+                },
+                include: {
+                    packagedFood: true,
+                }
+            });
+            if (!donation) throw new BadRequestError('Donation not found!');
+            if (donation.packagedFood?.giverUserId !== Number(id)) throw new BadRequestError('Donation not found in your donations!');
+            const currentStatus = donation.status;
+            let nextStatus;
+            console.log(currentStatus);
+            switch (currentStatus) {
+                case 'pending':
+                    nextStatus = DonationStatus.accepted;
+                    break;
+                case 'accepted':
+                    nextStatus = DonationStatus.onTheWay;
+                    break;
+                case 'onTheWay':
+                    nextStatus = DonationStatus.inBox;
+                    break;
+                default:
+                    throw new BadRequestError('Donation has already in box!');
+            }
+            const updatedDonation = await prisma.donation.update({
+                where: {
+                    id: Number(donationId)
+                },
+                data: {
+                    status: nextStatus
+                }
+            })
+            const { createdAt, updatedAt, ...rest } = updatedDonation;
+            res.status(200).json({ success: true, data: { ...rest } });
+        } catch (e: any) {
+            res.status(400).json({ success: false, message: e.message });
+        }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const cancelOwnedDonation = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        const { id: donationId } = req.params;
+        try {
+            const giver = await prisma.giverUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
+            if (!giver) throw new BadRequestError('Giver not found!');
+            const donation = await prisma.donation.findUnique({
+                where: {
+                    id: Number(donationId)
+                },
+                include: {
+                    packagedFood: true,
+                }
+            });
+            if (!donation) throw new BadRequestError('Donation not found!');
+            if (donation.packagedFood?.giverUserId !== Number(id)) throw new BadRequestError('Donation not found in your donations!');
+            const updatedDonation = await prisma.donation.update({
+                where: {
+                    id: Number(donationId)
+                },
+                data: {
+                    status: DonationStatus.rejected
+                },
+                include: {
+                    FoodBox: true,
+                    packagedFood: true
+                }
+            })
+            const { createdAt, updatedAt, ...rest } = updatedDonation;
             res.status(200).json({ success: true, data: { ...rest } });
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });

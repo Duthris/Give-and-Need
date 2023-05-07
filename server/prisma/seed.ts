@@ -10,7 +10,6 @@ async function seed() {
             password: await hashPassword('admin'),
         }
     })
-    console.log({ admin });
 }
 
 seed()

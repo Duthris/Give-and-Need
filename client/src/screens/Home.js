@@ -10,16 +10,31 @@ import donation from '../../assets/donate.png';
 import logo from '../../assets/giveandneed.png';
 import jwt_decode from 'jwt-decode';
 import { setRole } from '../store/auth.js';
+import { getNeederDetail } from '../store/needer.js';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function Home() {
     const isLogged = useSelector((state) => state.auth.token);
     const decoded = isLogged ? jwt_decode(isLogged) : null;
     const user = useSelector((state) => state.auth.user);
+    const dailyQuota = useSelector((state) => state.needer?.needer?.dailyNeedQuota);
     const handleLogout = () => {
         store.dispatch(openModal({
             name: 'logout',
         }));
     }
+
+    const handleGetDailyQuota = () => {
+        store.dispatch(getNeederDetail({ id: decoded.id })).then((res) => res.meta.requestStatus === 'fulfilled');
+    }
+
+    useFocusEffect(
+        React.useCallback(() => {
+            if (decoded && decoded.role === 'needer') {
+                handleGetDailyQuota();
+            }
+        }, [])
+    );
 
     React.useEffect(() => {
         if (isLogged) {
@@ -53,9 +68,13 @@ export default function Home() {
                         <SafeAreaView style={styles.container}>
                             {isLogged && (
                                 <>
-                                    <Image source={user.photo ? { uri: user.photo } : null} style={styles.logo} />
-                                    <Text style={styles.label}>Welcome to Give & Need - {user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) + ` ` + user.lastName.charAt(0).toUpperCase() + user.lastName.slice(1)}</Text>
-                                    {decoded.role === 'needer' && user.dailyNeedQuota > 0 && (
+                                    {decoded.role !== 'restaurant' && (
+                                        <>
+                                            <Image source={user.photo ? { uri: user.photo } : null} style={styles.logo} />
+                                            <Text style={styles.label}>Welcome to Give & Need - {user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) + ` ` + user.lastName.charAt(0).toUpperCase() + user.lastName.slice(1)}</Text>
+                                        </>
+                                    )}
+                                    {decoded.role === 'needer' && dailyQuota > 0 && (
                                         <View
                                             style={{
                                                 backgroundColor: 'tomato',
@@ -70,12 +89,12 @@ export default function Home() {
                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                 <Icons name="alert" size={22} color="yellow" />
                                                 <Text style={{ color: 'white', marginLeft: 10, flexWrap: 'wrap', flexShrink: 1 }}>
-                                                    Your daily need quota is {user.dailyNeedQuota}.
+                                                    Your daily need quota is {dailyQuota}.
                                                 </Text>
                                             </View>
                                         </View>
                                     )}
-                                    {decoded.role === 'needer' && user.dailyNeedQuota === 0 && (
+                                    {decoded.role === 'needer' && dailyQuota === 0 && (
                                         <View
                                             style={{
                                                 backgroundColor: 'tomato',

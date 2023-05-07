@@ -3,33 +3,38 @@ import { Appbar, List, Chip } from 'react-native-paper';
 import store from '../store/store.js';
 import { useSelector } from 'react-redux';
 import React from 'react';
-import { getNeeds } from '../store/needer.js';
+import { getGives, getOwnedGives } from '../store/giver.js';
 import { getTextByStatus, getIconNameByStatus, getBackgrounColorByStatus } from '../utils/functions.js';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-export default function Needs({ navigation }) {
+export default function Gives({ navigation }) {
     const [packagedExpanded, setPackagedExpanded] = React.useState(true);
-    const [restaurantExpanded, setRestaurantExpanded] = React.useState(true);
-    const needs = useSelector(state => state.needer.needs);
-    const [packagedNeeds, setPackagedNeeds] = React.useState([]);
-    const [restaurantNeeds, setRestaurantNeeds] = React.useState([]);
-
+    const [ownedPackagedExpanded, setOwnedPackagedExpanded] = React.useState(true);
+    const gives = useSelector(state => state.giver.gives);
+    const ownedGives = useSelector(state => state.giver.ownedGives);
+    const [packagedGives, setPackagedGives] = React.useState([]);
+    const [ownedPackagedGives, setOwnedPackagedGives] = React.useState([]);
     const handlePackagedExpanded = () => setPackagedExpanded(!packagedExpanded);
-    const handleRestaurantExpanded = () => setRestaurantExpanded(!restaurantExpanded);
+    const handleOwnedPackagedExpanded = () => setOwnedPackagedExpanded(!ownedPackagedExpanded);
 
     React.useEffect(() => {
-        store.dispatch(getNeeds()).then((res) => res.meta.requestStatus === 'fulfilled');
+        store.dispatch(getGives()).then((res) => res.meta.requestStatus === 'fulfilled');
+        store.dispatch(getOwnedGives()).then((res) => res.meta.requestStatus === 'fulfilled');
     }, []);
 
     React.useEffect(() => {
-        if (needs && needs.length > 0) {
-            const packaged = needs.filter(need => need.packagedFood !== null);
-            const restaurant = needs.filter(need => need.openFood !== null);
-            packaged && setPackagedNeeds(packaged);
-            restaurant && setRestaurantNeeds(restaurant);
+        if (gives && gives.length > 0) {
+            const existingGives = gives.filter(give => give.quantity > 0)
+            setPackagedGives(existingGives);
         }
-    }, [needs]);
+    }, [gives]);
+
+    React.useEffect(() => {
+        if (ownedGives && ownedGives.length > 0) {
+            setOwnedPackagedGives(ownedGives);
+        }
+    }, [ownedGives]);
 
     return (
         <KeyboardAwareScrollView
@@ -47,43 +52,43 @@ export default function Needs({ navigation }) {
         >
             <Appbar.Header style={{ backgroundColor: 'tomato' }} mode='center-aligned' statusBarHeight={Platform.OS === 'ios' ? 40 : 25}>
                 <Appbar.BackAction color={'white'} onPress={() => navigation.goBack()} />
-                <Appbar.Content style={{ color: 'white' }} color={'white'} title="My Needs" />
+                <Appbar.Content style={{ color: 'white' }} color={'white'} title="My Gives" />
             </Appbar.Header>
             <View style={{ flex: 1 }}>
                 <List.Section>
                     <List.Accordion
-                        title="Packaged Food Needs"
-                        style={packagedExpanded ? styles.accrodionStyle : undefined}
-                        titleStyle={packagedExpanded ? styles.accrodionTitleStyle : undefined}
-                        left={props => <List.Icon color={packagedExpanded ? 'white' : undefined} icon="food-takeout-box" />}
-                        right={props => <List.Icon color={packagedExpanded ? 'white' : undefined} icon={packagedExpanded ? "chevron-up" : "chevron-down"} />}
-                        expanded={packagedExpanded}
-                        onPress={handlePackagedExpanded}>
-                        {packagedNeeds && packagedNeeds.length > 0 ? packagedNeeds.map((need, idx) => {
+                        title="Owned Packaged Food Gives"
+                        style={ownedPackagedExpanded ? styles.accrodionStyle : undefined}
+                        titleStyle={ownedPackagedExpanded ? styles.accrodionTitleStyle : undefined}
+                        left={props => <List.Icon color={ownedPackagedExpanded ? 'white' : undefined} icon="food-takeout-box" />}
+                        right={props => <List.Icon color={ownedPackagedExpanded ? 'white' : undefined} icon={ownedPackagedExpanded ? "chevron-up" : "chevron-down"} />}
+                        expanded={ownedPackagedExpanded}
+                        onPress={handleOwnedPackagedExpanded}>
+                        {ownedPackagedGives && ownedPackagedGives.length > 0 ? ownedPackagedGives.map((give, idx) => {
                             return (
                                 <List.Item
                                     key={idx}
-                                    title={need.packagedFood.name.charAt(0).toUpperCase() + need.packagedFood.name.slice(1)}
+                                    title={give.packagedFood.name.charAt(0).toUpperCase() + give.packagedFood.name.slice(1)}
                                     titleStyle={{ fontWeight: 'bold' }}
                                     description={
-                                        <Chip style={[styles.chip, { backgroundColor: getBackgrounColorByStatus(need.status) }]}
-                                            icon={() => <Icons name={getIconNameByStatus(need.status)} size={30} color={'white'} />}
+                                        <Chip style={[styles.chip, { backgroundColor: getBackgrounColorByStatus(give.status) }]}
+                                            icon={() => <Icons name={getIconNameByStatus(give.status)} size={30} color={'white'} />}
                                             mode='outlined'
                                         >
-                                            <Text style={styles.chipText}>{getTextByStatus(need.status)}</Text>
+                                            <Text style={styles.chipText}>{getTextByStatus(give.status)}</Text>
                                         </Chip>
                                     }
                                     descriptionStyle={{ marginTop: 10 }}
-                                    left={props => <Image style={{ width: 100, height: 70, marginLeft: 5 }} source={{ uri: need.packagedFood.photo }} />}
+                                    left={props => <Image style={{ width: 100, height: 70, marginLeft: 5 }} source={{ uri: give.packagedFood.photo }} />}
                                     right={props => <List.Icon style={{ marginLeft: 10 }} icon="chevron-right" />}
                                     style={{ borderBottomWidth: 1, borderBottomColor: 'tomato' }}
-                                    onPress={() => navigation.navigate('PackagedNeed', { need: need })}
+                                    onPress={() => navigation.navigate('OwnedPackagedGive', { give: give })}
                                 />
                             );
                         })
                             : <List.Item
-                                title="No Needs"
-                                description="You have no packaged food needs yet."
+                                title="No Gives"
+                                description="You have no packaged food gives yet."
                                 style={{ borderBottomWidth: 1, borderBottomColor: 'tomato' }}
                                 left={props => <List.Icon style={{ marginLeft: 10 }} icon="food-takeout-box" />}
                             />}
@@ -91,43 +96,41 @@ export default function Needs({ navigation }) {
                 </List.Section>
                 <List.Section>
                     <List.Accordion
-                        style={restaurantExpanded ? styles.accrodionStyle : undefined}
-                        titleStyle={restaurantExpanded ? styles.accrodionTitleStyle : undefined}
-                        title="Restaurant Food Needs"
-                        expanded={restaurantExpanded}
-                        onPress={handleRestaurantExpanded}
-                        left={props => <List.Icon color={restaurantExpanded ? 'white' : undefined} icon="food" />}
-                        right={props => <List.Icon color={restaurantExpanded ? 'white' : undefined} icon={restaurantExpanded ? "chevron-up" : "chevron-down"} />}
-                    >
-                        {restaurantNeeds && restaurantNeeds.length > 0 ? restaurantNeeds.map((need, idx) => {
+                        title="Packaged Food Gives"
+                        style={packagedExpanded ? styles.accrodionStyle : undefined}
+                        titleStyle={packagedExpanded ? styles.accrodionTitleStyle : undefined}
+                        left={props => <List.Icon color={packagedExpanded ? 'white' : undefined} icon="food-takeout-box" />}
+                        right={props => <List.Icon color={packagedExpanded ? 'white' : undefined} icon={packagedExpanded ? "chevron-up" : "chevron-down"} />}
+                        expanded={packagedExpanded}
+                        onPress={handlePackagedExpanded}>
+                        {packagedGives && packagedGives.length > 0 ? packagedGives.map((give, idx) => {
                             return (
                                 <List.Item
                                     key={idx}
-                                    title={need.openFood.name.charAt(0).toUpperCase() + need.openFood.name.slice(1)}
+                                    title={give.name.charAt(0).toUpperCase() + give.name.slice(1)}
                                     titleStyle={{ fontWeight: 'bold' }}
                                     description={
-                                        <Chip style={[styles.chip, { backgroundColor: getBackgrounColorByStatus(need.status) }]}
-                                            icon={() => <Icons name={getIconNameByStatus(need.status)} size={30} color={'white'} />}
+                                        <Chip style={[styles.chip, { backgroundColor: getBackgrounColorByStatus(give.status) }]}
+                                            icon={() => <Icons name={getIconNameByStatus(give.status)} size={30} color={'white'} />}
                                             mode='outlined'
                                         >
-                                            <Text style={styles.chipText}>{getTextByStatus(need.status)}</Text>
+                                            <Text style={styles.chipText}>Quantity: {give.quantity}</Text>
                                         </Chip>
                                     }
                                     descriptionStyle={{ marginTop: 10 }}
-                                    left={props => <Image style={{ width: 100, height: 70, marginLeft: 5 }} source={{ uri: need.openFood.photo }} />}
+                                    left={props => <Image style={{ width: 100, height: 70, marginLeft: 5 }} source={{ uri: give.photo }} />}
                                     right={props => <List.Icon style={{ marginLeft: 10 }} icon="chevron-right" />}
                                     style={{ borderBottomWidth: 1, borderBottomColor: 'tomato' }}
-                                    onPress={() => navigation.navigate('RestaurantNeed', { need: need })}
+                                    onPress={() => navigation.navigate('PackagedGive', { give: give })}
                                 />
                             );
                         })
                             : <List.Item
-                                title="No Needs"
-                                description="You have no restaurant food needs yet."
+                                title="No Gives"
+                                description="You have no packaged food gives yet."
                                 style={{ borderBottomWidth: 1, borderBottomColor: 'tomato' }}
-                                left={props => <List.Icon style={{ marginLeft: 10 }} icon="food" />}
-                            />
-                        }
+                                left={props => <List.Icon style={{ marginLeft: 10 }} icon="food-takeout-box" />}
+                            />}
                     </List.Accordion>
                 </List.Section>
             </View>

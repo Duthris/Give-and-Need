@@ -3,13 +3,15 @@ import modal from "./modal";
 import auth from "./auth";
 import needer from "./needer";
 import donation from './donation';
+import giver from './giver';
 
 const store = configureStore({
     reducer: {
         modal,
         auth,
         needer,
-        donation
+        donation,
+        giver
     },
     middleware: getDefaultMiddleware => getDefaultMiddleware({
         serializableCheck: false,

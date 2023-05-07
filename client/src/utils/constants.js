@@ -39,3 +39,22 @@ This Agreement shall be governed by and construed in accordance with the laws of
 Changes to this Agreement
 The App and its owners reserve the right to modify this Agreement at any time, and such modifications shall be effective immediately upon posting on the App.Your continued use of the App after the posting of any modifications to this Agreement shall constitute
 `
+
+export const foodBoxCoordinates = [
+    {
+        latitude: 37.05219302703055,
+        longitude: 30.61998607303617,
+    },
+    {
+        latitude: 37.051768269856126,
+        longitude: 30.620127642931216,
+    },
+    {
+        latitude: 37.05132784241735,
+        longitude: 30.620288228612466,
+    },
+    {
+        latitude: 37.0508600929064,
+        longitude: 30.620432265195124,
+    },
+]

@@ -3,11 +3,16 @@ import { View, Text, Dimensions, StyleSheet, Image, TouchableOpacity, ScrollView
 import { Button, Dialog, Portal, Chip, Checkbox, Appbar } from 'react-native-paper';
 import Carousel from 'react-native-reanimated-carousel';
 import { getPackagedFoods, getRestaurantFoods } from '../store/donation';
+import { needFood } from '../store/needer';
 import store from '../store/store';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import moment from 'moment';
 import { packagedFoodTerms } from '../utils/constants';
 import { useSelector } from 'react-redux';
+import MapView, { Marker } from 'react-native-maps';
+import markerIcon from '../../assets/marker.png';
+import disabledMarkerIcon from '../../assets/markerDisabled.png';
+import { foodBoxCoordinates } from '../utils/constants';
 
 const Donations = ({ navigation }) => {
     const [packagedFoods, setPackagedFoods] = React.useState([]);
@@ -19,12 +24,14 @@ const Donations = ({ navigation }) => {
     const width = Dimensions.get('window').width;
     const [visible, setVisible] = React.useState(false);
     const [visibleRestaurant, setVisibleRestaurant] = React.useState(false);
+    const [visibleMap, setVisibleMap] = React.useState(false);
     const [checked, setChecked] = React.useState(false);
     const [checkedRestaurant, setCheckedRestaurant] = React.useState(false);
     const [openTerms, setOpenTerms] = React.useState(false);
     const [openTermsRestaurant, setOpenTermsRestaurant] = React.useState(false);
     const [scrolledToEnd, setScrolledToEnd] = React.useState(false);
     const [scrolledToEndRestaurant, setScrolledToEndRestaurant] = React.useState(false);
+    const [selectedFoodBox, setSelectedFoodBox] = React.useState({});
     const packagedFoodsSelector = useSelector((state) => state.donation.packagedFoods);
     const restaurantFoodsSelector = useSelector((state) => state.donation.restaurantFoods);
     const role = useSelector((state) => state.auth.role);
@@ -80,6 +87,57 @@ const Donations = ({ navigation }) => {
 
     const handleGetRestaurantFoods = () => {
         store.dispatch(getRestaurantFoods()).then((res) => res.meta.requestStatus === 'fulfilled');
+    }
+
+    const showMap = () => setVisibleMap(true);
+    const hideMap = () => {
+        setVisibleMap(false);
+        setSelectedFoodBox({});
+    }
+
+    const handleSelectFoodBox = (item) => {
+        selectedFoodBox.id !== item.id && setSelectedFoodBox(item);
+    }
+
+    const getMarkerByCoordinates = (coordinates, title, description, key) => {
+        return (
+            <Marker
+                coordinate={{
+                    latitude: coordinates.latitude,
+                    longitude: coordinates.longitude,
+                }}
+                title={title}
+                description={description}
+                icon={selectedFoodBox.id === (Number(key) + 1) ? markerIcon : disabledMarkerIcon}
+                key={key}
+                onPress={() => handleSelectFoodBox({ ...coordinates, id: Number(key) + 1 })}
+            />
+        )
+    }
+
+    const handleNeedFood = () => {
+        const packagedFoodData = {
+            packagedFoodId: activeItem.id,
+            openFoodId: null,
+            foodBoxId: selectedFoodBox.id
+        }
+
+        const restaurantFoodData = {
+            packagedFoodId: null,
+            openFoodId: activeItemRestaurant.id,
+            foodBoxId: null
+        }
+
+        const data = visibleRestaurant ? restaurantFoodData : packagedFoodData;
+
+        store.dispatch(needFood(data)).then((res) => {
+            if (res.meta.requestStatus === 'fulfilled') {
+                hideDialog();
+                hideDialogRestaurant();
+                hideMap();
+                navigation.navigate('Needs');
+            }
+        });
     }
 
     React.useEffect(() => {
@@ -238,7 +296,7 @@ const Donations = ({ navigation }) => {
                                                     mode={'elevated'}
                                                     icon={() => <Icon name="hand-heart" style={{ marginBottom: 5 }} size={22} color="white" />}
                                                     disabled={!checked}
-                                                    onPress={hideDialog}
+                                                    onPress={showMap}
                                                     style={checked ? styles.buttonStyle : styles.disabledButtonStyle}
                                                 >
                                                     <Text style={{ color: 'white', fontWeight: 600 }}>Need</Text>
@@ -304,63 +362,109 @@ const Donations = ({ navigation }) => {
                                             </Text>
                                         </ScrollView>
                                     </Dialog.ScrollArea>
-                                    <Dialog.Content style={{ alignItems: 'center', height: 100 }}>
+                                    <Dialog.Content style={{ alignItems: 'center', height: role === 'needer' ? 100 : 300 }}>
                                         <Image source={{ uri: activeItemRestaurant.photo }} style={styles.dialogImage} />
                                     </Dialog.Content>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 100 }}>
-                                        <Checkbox.Android
-                                            status={checkedRestaurant ? 'checked' : 'unchecked'}
-                                            color={'tomato'}
-                                            style={{ marginLeft: -10 }}
-                                            onPress={showTermsRestaurant}
-                                        />
-                                        <Text style={{ fontWeight: 500, marginBottom: 1, color: checkedRestaurant ? 'tomato' : '#000' }}>
-                                            I have read the terms and conditions.
+                                    {role === 'needer' && (
+                                        <>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 100 }}>
+                                                <Checkbox.Android
+                                                    status={checkedRestaurant ? 'checked' : 'unchecked'}
+                                                    color={'tomato'}
+                                                    style={{ marginLeft: -10 }}
+                                                    onPress={showTermsRestaurant}
+                                                />
+                                                <Text style={{ fontWeight: 500, marginBottom: 1, color: checkedRestaurant ? 'tomato' : '#000' }}>
+                                                    I have read the terms and conditions.
+                                                </Text>
+                                                <Portal>
+                                                    <Dialog visible={openTermsRestaurant} onDismiss={hideTermsRestaurant}>
+                                                        <Dialog.Title style={{ fontSize: 28, fontWeight: 800, color: 'tomato' }}>Terms and Conditions</Dialog.Title>
+                                                        <Dialog.ScrollArea style={{ maxHeight: 220, paddingHorizontal: 0 }}>
+                                                            <ScrollView
+                                                                contentContainerStyle={{ paddingHorizontal: 24 }}
+                                                                onMomentumScrollEnd={({ nativeEvent }) => {
+                                                                    handleScrollToEndRestaurant(nativeEvent)
+                                                                }}
+                                                            >
+                                                                <Text style={{ fontSize: 18, padding: 10 }}>
+                                                                    {packagedFoodTerms}
+                                                                </Text>
+                                                            </ScrollView>
+                                                        </Dialog.ScrollArea>
+                                                        <Dialog.Actions>
+                                                            <Button
+                                                                mode={'elevated'}
+                                                                icon={() => <Icon name="check-circle" size={22} color="white" />}
+                                                                style={!scrolledToEndRestaurant ? styles.disabledButtonStyle : styles.buttonStyle}
+                                                                disabled={!scrolledToEndRestaurant}
+                                                                onPress={agreeTermsRestaurant}
+                                                            >
+                                                                <Text style={{ color: 'white', fontWeight: 600 }}>Agree</Text>
+                                                            </Button>
+                                                            <Button
+                                                                mode={'elevated'}
+                                                                icon={() => <Icon name="cancel" size={22} color="white" />}
+                                                                style={styles.buttonStyle}
+                                                                onPress={hideTermsRestaurant}
+                                                            >
+                                                                <Text style={{ color: 'white', fontWeight: 600 }}>Cancel</Text>
+                                                            </Button>
+                                                        </Dialog.Actions>
+                                                    </Dialog>
+                                                </Portal>
+                                            </View>
+                                            <Dialog.Actions>
+                                                <Button
+                                                    mode={'elevated'}
+                                                    icon={() => <Icon name="hand-heart" style={{ marginBottom: 5 }} size={22} color="white" />}
+                                                    disabled={!checkedRestaurant}
+                                                    onPress={handleNeedFood}
+                                                    style={checkedRestaurant ? styles.buttonStyle : styles.disabledButtonStyle}
+                                                >
+                                                    <Text style={{ color: 'white', fontWeight: 600 }}>Need</Text>
+                                                </Button>
+                                                <Button
+                                                    mode={'elevated'}
+                                                    icon={() => <Icon name="cancel" size={22} color="white" />}
+                                                    style={styles.buttonStyle}
+                                                    onPress={hideDialogRestaurant}
+                                                >
+                                                    <Text style={{ color: 'white', fontWeight: 600 }}>Cancel</Text>
+                                                </Button>
+                                            </Dialog.Actions>
+                                        </>
+                                    )}
+                                </Dialog>
+                            </Portal>
+                            <Portal>
+                                <Dialog visible={visibleMap} onDismiss={hideMap}>
+                                    <Dialog.Title style={{ fontSize: 28, fontWeight: 800, color: 'tomato' }}>Map</Dialog.Title>
+                                    <Dialog.Content style={{ alignItems: 'center', height: 300 }}>
+                                        <Text style={{ fontSize: 18, paddingBottom: 10 }}>
+                                            {!selectedFoodBox.id ? `Please select the food box you want to be delivered to.` : `You have selected Food Box ${selectedFoodBox.id} as your location.`}
                                         </Text>
-                                        <Portal>
-                                            <Dialog visible={openTermsRestaurant} onDismiss={hideTermsRestaurant}>
-                                                <Dialog.Title style={{ fontSize: 28, fontWeight: 800, color: 'tomato' }}>Terms and Conditions</Dialog.Title>
-                                                <Dialog.ScrollArea style={{ maxHeight: 220, paddingHorizontal: 0 }}>
-                                                    <ScrollView
-                                                        contentContainerStyle={{ paddingHorizontal: 24 }}
-                                                        onMomentumScrollEnd={({ nativeEvent }) => {
-                                                            handleScrollToEndRestaurant(nativeEvent)
-                                                        }}
-                                                    >
-                                                        <Text style={{ fontSize: 18, padding: 10 }}>
-                                                            {packagedFoodTerms}
-                                                        </Text>
-                                                    </ScrollView>
-                                                </Dialog.ScrollArea>
-                                                <Dialog.Actions>
-                                                    <Button
-                                                        mode={'elevated'}
-                                                        icon={() => <Icon name="check-circle" size={22} color="white" />}
-                                                        style={!scrolledToEndRestaurant ? styles.disabledButtonStyle : styles.buttonStyle}
-                                                        disabled={!scrolledToEndRestaurant}
-                                                        onPress={agreeTermsRestaurant}
-                                                    >
-                                                        <Text style={{ color: 'white', fontWeight: 600 }}>Agree</Text>
-                                                    </Button>
-                                                    <Button
-                                                        mode={'elevated'}
-                                                        icon={() => <Icon name="cancel" size={22} color="white" />}
-                                                        style={styles.buttonStyle}
-                                                        onPress={hideTermsRestaurant}
-                                                    >
-                                                        <Text style={{ color: 'white', fontWeight: 600 }}>Cancel</Text>
-                                                    </Button>
-                                                </Dialog.Actions>
-                                            </Dialog>
-                                        </Portal>
-                                    </View>
-                                    <Dialog.Actions>
+                                        <MapView
+                                            style={{ width: '100%', height: '100%' }}
+                                            initialRegion={{
+                                                latitude: 37.05186851276164,
+                                                longitude: 30.620937678197738,
+                                                latitudeDelta: 0.003,
+                                                longitudeDelta: 0.003,
+                                            }}
+                                        >
+                                            {foodBoxCoordinates.map((coordinate, index) => (
+                                                getMarkerByCoordinates(coordinate, `Food Box ${index + 1}`, `You have selected Food Box ${index + 1} as your location. Please click the button below to confirm.`, index)
+                                            ))}
+                                        </MapView>
+                                    </Dialog.Content>
+                                    <Dialog.Actions style={{ marginTop: 50 }}>
                                         <Button
                                             mode={'elevated'}
                                             icon={() => <Icon name="hand-heart" style={{ marginBottom: 5 }} size={22} color="white" />}
-                                            disabled={!checkedRestaurant}
-                                            onPress={hideDialogRestaurant}
-                                            style={checkedRestaurant ? styles.buttonStyle : styles.disabledButtonStyle}
+                                            disabled={!selectedFoodBox.id}
+                                            onPress={handleNeedFood}
+                                            style={selectedFoodBox.id ? styles.buttonStyle : styles.disabledButtonStyle}
                                         >
                                             <Text style={{ color: 'white', fontWeight: 600 }}>Need</Text>
                                         </Button>
@@ -368,7 +472,7 @@ const Donations = ({ navigation }) => {
                                             mode={'elevated'}
                                             icon={() => <Icon name="cancel" size={22} color="white" />}
                                             style={styles.buttonStyle}
-                                            onPress={hideDialogRestaurant}
+                                            onPress={hideMap}
                                         >
                                             <Text style={{ color: 'white', fontWeight: 600 }}>Cancel</Text>
                                         </Button>
@@ -378,7 +482,7 @@ const Donations = ({ navigation }) => {
                         </>
                     )}
                 </View>
-            </View>
+            </View >
         </>
     )
 }

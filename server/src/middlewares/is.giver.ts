@@ -20,6 +20,6 @@ export const isGiver = async (req: Request, res: Response, next: NextFunction) =
         let message;
         if (e instanceof Error) message = e.message;
         else message = String(e);
-        res.status(400).json({ success: false, message });        
+        res.status(400).json({ success: false, message });
     }
 }

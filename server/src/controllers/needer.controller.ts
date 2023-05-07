@@ -376,7 +376,7 @@ export const clearBasket = async (req: Request, res: Response) => {
 export const needFood = async (req: Request, res: Response) => {
     try {
         const id = getIdFromToken(req);
-        const foodBoxId = req.body.foodBoxId;
+        const { packagedFoodId, openFoodId, foodBoxId } = req.body;
         try {
             const needer = await prisma.neederUser.findUnique({
                 where: {
@@ -386,20 +386,11 @@ export const needFood = async (req: Request, res: Response) => {
             if (!needer) throw new BadRequestError('Needer not found!');
             if (needer.dailyNeedQuota! <= 0) throw new BadRequestError('Daily need quota exceeded!');
 
-            const basket = await prisma.basket.findUnique({
-                where: {
-                    neederUserId: Number(id)
-                }
-            });
-            if (!basket) throw new BadRequestError('Needer basket not found!');
-
-            if (basket.packagedFoodId === null && basket.openFoodId === null) throw new BadRequestError('Your basket is empty!');
-
             const donation = await prisma.donation.create({
                 data: {
                     neederUserId: Number(id),
-                    packagedFoodId: Number(basket.packagedFoodId) || null,
-                    openFoodId: Number(basket.openFoodId) || null,
+                    packagedFoodId: Number(packagedFoodId) || null,
+                    openFoodId: Number(openFoodId) || null,
                     status: 'pending',
                 }
             });
@@ -410,29 +401,31 @@ export const needFood = async (req: Request, res: Response) => {
                 charset: voucher_codes.charset("numbers")
             });
 
-            const foodBox = await prisma.foodBox.findUnique({
-                where: {
-                    id: Number(foodBoxId)
-                }
-            });
 
-            if (!foodBox) throw new BadRequestError('Food box not found!');
-            if (foodBox.packagedFoodId !== null) throw new BadRequestError('Food box is not empty!');
+            if (foodBoxId !== null) {
+                const foodBox = await prisma.foodBox.findUnique({
+                    where: {
+                        id: Number(foodBoxId)
+                    }
+                });
+
+                if (!foodBox) throw new BadRequestError('Food box not found!');
+            }
 
             let food: any = null;
             let foodType;
 
-            if (basket.openFoodId) {
+            if (openFoodId) {
                 food = await prisma.openFood.findUnique({
                     where: {
-                        id: Number(basket.openFoodId)
+                        id: Number(openFoodId)
                     }
                 });
                 foodType = 'openFood';
-            } else if (basket.packagedFoodId) {
+            } else if (packagedFoodId) {
                 food = await prisma.packagedFood.findUnique({
                     where: {
-                        id: Number(basket.packagedFoodId)
+                        id: Number(packagedFoodId)
                     }
                 });
                 foodType = 'packagedFood';
@@ -440,30 +433,22 @@ export const needFood = async (req: Request, res: Response) => {
                 throw new BadRequestError('No food in your basket!');
             }
 
-            await prisma.foodBox.update({
-                where: {
-                    id: Number(foodBoxId)
-                },
-                data: {
-                    password: code[0],
-                    donationId: donation.id,
-                    packagedFoodId: basket.packagedFoodId,
-                    neederUserId: Number(id),
-                    giverUserId: foodType === 'packagedFood' ? food?.giverUserId : foodType === 'openFood' ? food?.restaurantUserId : null,
-                }
-            })
+            if (foodBoxId !== null) {
+                await prisma.foodBox.update({
+                    where: {
+                        id: Number(foodBoxId)
+                    },
+                    data: {
+                        password: code[0],
+                        donationId: donation.id,
+                        packagedFoodId: foodType === 'packagedFood' ? packagedFoodId : openFoodId,
+                        neederUserId: Number(id),
+                        giverUserId: foodType === 'packagedFood' ? food?.giverUserId : foodType === 'openFood' ? food?.restaurantUserId : null,
+                    }
+                })
 
-            await prisma.basket.update({
-                where: {
-                    id: basket.id
-                },
-                data: {
-                    packagedFoodId: null,
-                    openFoodId: null,
-                }
-            })
-
-            await sendEmail(needer.email, 'Your Food Box Password for Your Need', `Food Box Password: ${code[0]}`);
+                await sendEmail(needer.email, 'Your Food Box Password for Your Need', `Food Box Password: ${code[0]}`);
+            }
 
             await prisma.neederUser.update({
                 where: {
@@ -478,7 +463,7 @@ export const needFood = async (req: Request, res: Response) => {
                 if (foodType === 'openFood') {
                     await prisma.openFood.update({
                         where: {
-                            id: Number(basket.openFoodId)
+                            id: Number(openFoodId)
                         },
                         data: {
                             quantity: food.quantity - 1,
@@ -487,7 +472,7 @@ export const needFood = async (req: Request, res: Response) => {
                 } else if (foodType === 'packagedFood') {
                     await prisma.packagedFood.update({
                         where: {
-                            id: Number(basket.packagedFoodId)
+                            id: Number(packagedFoodId)
                         },
                         data: {
                             quantity: food.quantity - 1,
@@ -500,7 +485,7 @@ export const needFood = async (req: Request, res: Response) => {
                 if (foodType === 'openFood') {
                     await prisma.openFood.update({
                         where: {
-                            id: Number(basket.openFoodId)
+                            id: Number(openFoodId)
                         },
                         data: {
                             ownable: false,
@@ -509,7 +494,7 @@ export const needFood = async (req: Request, res: Response) => {
                 } else if (foodType === 'packagedFood') {
                     await prisma.packagedFood.update({
                         where: {
-                            id: Number(basket.packagedFoodId)
+                            id: Number(packagedFoodId)
                         },
                         data: {
                             ownable: false,
