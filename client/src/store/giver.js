@@ -6,7 +6,9 @@ const initialState = {
     giverLoading: false,
     giverError: null,
     gives: [],
-    ownedGives: []
+    ownedGives: [],
+    givesLoading: true,
+    ownedGivesLoading: true,
 }
 
 export const getGives = createAsyncThunk(
@@ -82,32 +84,38 @@ const giverSlice = createSlice({
     reducers: {
         clearGiverError: (state) => {
             state.giverError = null;
-        }
+        },
+        givesLoading: (state, { payload }) => {
+            state.givesLoading = payload;
+        },
+        ownedGivesLoading: (state, { payload }) => {
+            state.ownedGivesLoading = payload;
+        },
     },
     extraReducers: (builder) =>
         builder
             .addCase(getGives.pending, (state) => {
-                state.giverLoading = true;
+                state.givesLoading = true;
                 state.giverError = null;
             })
             .addCase(getGives.fulfilled, (state, { payload }) => {
-                state.giverLoading = false;
+                state.givesLoading = false;
                 state.gives = payload.data;
             })
             .addCase(getGives.rejected, (state, { payload }) => {
-                state.giverLoading = false;
+                state.givesLoading = false;
                 state.giverError = payload;
             })
             .addCase(getOwnedGives.pending, (state) => {
-                state.giverLoading = true;
+                state.ownedGivesLoading = true;
                 state.giverError = null;
             })
             .addCase(getOwnedGives.fulfilled, (state, { payload }) => {
-                state.giverLoading = false;
+                state.ownedGivesLoading = false;
                 state.ownedGives = payload.data;
             })
             .addCase(getOwnedGives.rejected, (state, { payload }) => {
-                state.giverLoading = false;
+                state.ownedGivesLoading = false;
                 state.giverError = payload;
             })
             .addCase(updatGiveStatusToNextStep.pending, (state) => {
@@ -116,7 +124,7 @@ const giverSlice = createSlice({
             })
             .addCase(updatGiveStatusToNextStep.fulfilled, (state, { payload }) => {
                 state.giverLoading = false;
-                state.gives[state.ownedGives.findIndex(give => give.id === payload.data.id)] = payload.data;
+                state.ownedGives[state.ownedGives.findIndex(give => give.id === payload.data.id)] = payload.data;
             })
             .addCase(updatGiveStatusToNextStep.rejected, (state, { payload }) => {
                 state.giverLoading = false;
@@ -148,6 +156,6 @@ const giverSlice = createSlice({
             })
 })
 
-export const { clearGiverError } = giverSlice.actions;
+export const { clearGiverError, givesLoading, ownedGivesLoading } = giverSlice.actions;
 
 export default giverSlice.reducer;

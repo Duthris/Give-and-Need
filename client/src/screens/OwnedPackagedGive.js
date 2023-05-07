@@ -1,16 +1,26 @@
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { Appbar, Card, Button, Chip } from 'react-native-paper';
+import { Modal, Portal, Appbar, Card, Button, Chip, IconButton } from 'react-native-paper';
 import React from 'react';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
 import store from '../store/store.js';
-import { cancelGive } from '../store/giver.js';
-import { showToast } from '../utils/functions.js';
-import { getBackgrounColorByStatus, getTextByStatus, getIconNameByStatus } from '../utils/functions';
+import { cancelGive, updatGiveStatusToNextStep } from '../store/giver.js';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { getBackgrounColorByStatus, getTextByStatus, getIconNameByStatus, showToast } from '../utils/functions';
 
 export default function OwnedPackagedGive({ navigation, route }) {
     const { give } = route.params;
+
+    const [visible, setVisible] = React.useState(false);
+
+    const showModal = () => setVisible(true);
+    const hideModal = () => setVisible(false);
+
+    const handleUpdateStatus = async (status) => {
+        await store.dispatch(updatGiveStatusToNextStep({ donationId: give.id })).then((res) => res.meta.requestStatus === 'fulfilled' && hideModal())
+        navigation.goBack();
+        showToast('Give status updated successfully');
+    }
 
     const handleCancelGive = () => {
         store.dispatch(cancelGive({ donationId: give.id })).then((res) => res.meta.requestStatus === 'fulfilled' && navigation.goBack());
@@ -38,12 +48,30 @@ export default function OwnedPackagedGive({ navigation, route }) {
             >
                 <Card style={styles.card}>
                     <Card.Title title={give.packagedFood.name} titleStyle={styles.title} />
-                    <Chip style={[styles.chip, { backgroundColor: getBackgrounColorByStatus(give.status) }]}
-                        icon={() => <Icons name={getIconNameByStatus(give.status)} size={30} color={'white'} />}
-                        mode='outlined'
-                    >
-                        <Text style={styles.chipText}>{getTextByStatus(give.status)}</Text>
-                    </Chip>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <Portal>
+                            <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={styles.modal}>
+                                <Text style={styles.modalText}>Are you sure you want to set the status to next step?</Text>
+                                <Button onPress={handleUpdateStatus} textColor={'tomato'} style={{ width: '30%', alignSelf: 'center' }} icon='check'>Yes</Button>
+                                <Button onPress={hideModal} textColor={'tomato'} style={{ width: '30%', alignSelf: 'center' }} icon='close'>No</Button>
+                            </Modal>
+                        </Portal>
+                        <Chip style={[styles.chip, { backgroundColor: getBackgrounColorByStatus(give.status) }]}
+                            icon={() => <Icons name={getIconNameByStatus(give.status)} size={30} color={'white'} />}
+                            mode='outlined'
+                        >
+                            <Text style={styles.chipText}>{getTextByStatus(give.status)}</Text>
+                        </Chip>
+                        {(give.status === 'pending' || give.status === 'accepted' || give.status === 'onTheWay') && (
+                            <IconButton
+                                icon="arrow-right"
+                                containerColor={'#01b34a'}
+                                iconColor={'white'}
+                                size={30}
+                                onPress={showModal}
+                            />
+                        )}
+                    </View>
                     {give.status !== 'rejected' && give.status !== 'completed' && (
                         <View
                             style={{
@@ -150,5 +178,16 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         height: 50,
         justifyContent: 'center',
+    },
+    modal: {
+        backgroundColor: 'white',
+        padding: 20,
+        margin: 20,
+        borderRadius: 20,
+    },
+    modalText: {
+        fontSize: 18,
+        textAlign: 'center',
+        marginBottom: 20,
     },
 })

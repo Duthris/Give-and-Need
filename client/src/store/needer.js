@@ -7,6 +7,7 @@ const initialState = {
     neederError: null,
     needs: [],
     needer: null,
+    needsLoading: true,
 }
 
 export const getNeederDetail = createAsyncThunk(
@@ -67,7 +68,10 @@ const neederSlice = createSlice({
     reducers: {
         clearNeedererror: (state) => {
             state.neederError = null;
-        }
+        },
+        needsLoading: (state, { payload }) => {
+            state.needsLoading = payload;
+        },
     },
     extraReducers: (builder) =>
         builder
@@ -84,16 +88,16 @@ const neederSlice = createSlice({
                 state.neederLoading = false;
             })
             .addCase(getNeeds.pending, (state) => {
-                state.neederLoading = true;
+                state.needsLoading = true;
             })
             .addCase(getNeeds.fulfilled, (state, { payload }) => {
-                state.neederLoading = false;
+                state.needsLoading = false;
                 state.needs = payload.data;
             })
             .addCase(getNeeds.rejected, (state, action) => {
                 if (action.payload) state.neederError = action.payload.error;
                 else state.neederError = action.error.message;
-                state.neederLoading = false;
+                state.needsLoading = false;
             })
             .addCase(markNeedAsCompleted.pending, (state) => {
                 state.neederLoading = true;
@@ -124,6 +128,6 @@ const neederSlice = createSlice({
             })
 })
 
-export const { clearNeedererror } = neederSlice.actions;
+export const { clearNeedererror, needsLoading } = neederSlice.actions;
 
 export default neederSlice.reducer;

@@ -1,9 +1,9 @@
 import { StyleSheet, View, Image, Text } from 'react-native';
-import { Appbar, List, Chip } from 'react-native-paper';
+import { Appbar, List, Chip, ActivityIndicator } from 'react-native-paper';
 import store from '../store/store.js';
 import { useSelector } from 'react-redux';
 import React from 'react';
-import { getGives, getOwnedGives } from '../store/giver.js';
+import { getGives, getOwnedGives, ownedGivesLoading, givesLoading } from '../store/giver.js';
 import { getTextByStatus, getIconNameByStatus, getBackgrounColorByStatus } from '../utils/functions.js';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -13,14 +13,16 @@ export default function Gives({ navigation }) {
     const [ownedPackagedExpanded, setOwnedPackagedExpanded] = React.useState(true);
     const gives = useSelector(state => state.giver.gives);
     const ownedGives = useSelector(state => state.giver.ownedGives);
+    const loadingPackagedGives = useSelector(state => state.giver.givesLoading);
+    const loadingOwnedPackagedGives = useSelector(state => state.giver.ownedGivesLoading);
     const [packagedGives, setPackagedGives] = React.useState([]);
     const [ownedPackagedGives, setOwnedPackagedGives] = React.useState([]);
     const handlePackagedExpanded = () => setPackagedExpanded(!packagedExpanded);
     const handleOwnedPackagedExpanded = () => setOwnedPackagedExpanded(!ownedPackagedExpanded);
 
     React.useEffect(() => {
-        store.dispatch(getGives()).then((res) => res.meta.requestStatus === 'fulfilled');
-        store.dispatch(getOwnedGives()).then((res) => res.meta.requestStatus === 'fulfilled');
+        store.dispatch(getGives()).then((res) => res.meta.requestStatus === 'fulfilled').then(() => store.dispatch(givesLoading(false)));
+        store.dispatch(getOwnedGives()).then((res) => res.meta.requestStatus === 'fulfilled').then(() => store.dispatch(ownedGivesLoading(false)));
     }, []);
 
     React.useEffect(() => {
@@ -64,7 +66,7 @@ export default function Gives({ navigation }) {
                         right={props => <List.Icon color={ownedPackagedExpanded ? 'white' : undefined} icon={ownedPackagedExpanded ? "chevron-up" : "chevron-down"} />}
                         expanded={ownedPackagedExpanded}
                         onPress={handleOwnedPackagedExpanded}>
-                        {ownedPackagedGives && ownedPackagedGives.length > 0 ? ownedPackagedGives.map((give, idx) => {
+                        {ownedPackagedGives && ownedPackagedGives.length > 0 && !loadingOwnedPackagedGives ? ownedPackagedGives.map((give, idx) => {
                             return (
                                 <List.Item
                                     key={idx}
@@ -85,7 +87,7 @@ export default function Gives({ navigation }) {
                                     onPress={() => navigation.navigate('OwnedPackagedGive', { give: give })}
                                 />
                             );
-                        })
+                        }) : loadingOwnedPackagedGives ? <ActivityIndicator animating={true} color={'tomato'} size={'large'} style={{ marginTop: 20, marginRight: 70 }} />
                             : <List.Item
                                 title="No Gives"
                                 description="You have no packaged food gives yet."
@@ -103,7 +105,7 @@ export default function Gives({ navigation }) {
                         right={props => <List.Icon color={packagedExpanded ? 'white' : undefined} icon={packagedExpanded ? "chevron-up" : "chevron-down"} />}
                         expanded={packagedExpanded}
                         onPress={handlePackagedExpanded}>
-                        {packagedGives && packagedGives.length > 0 ? packagedGives.map((give, idx) => {
+                        {packagedGives && packagedGives.length > 0 && !loadingPackagedGives ? packagedGives.map((give, idx) => {
                             return (
                                 <List.Item
                                     key={idx}
@@ -124,7 +126,7 @@ export default function Gives({ navigation }) {
                                     onPress={() => navigation.navigate('PackagedGive', { give: give })}
                                 />
                             );
-                        })
+                        }) : loadingPackagedGives ? <ActivityIndicator animating={true} color={'tomato'} size={'large'} style={{ marginTop: 20, marginRight: 70 }} />
                             : <List.Item
                                 title="No Gives"
                                 description="You have no packaged food gives yet."

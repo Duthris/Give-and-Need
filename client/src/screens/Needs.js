@@ -1,9 +1,9 @@
 import { StyleSheet, View, Image, Text } from 'react-native';
-import { Appbar, List, Chip } from 'react-native-paper';
+import { ActivityIndicator, Appbar, List, Chip } from 'react-native-paper';
 import store from '../store/store.js';
 import { useSelector } from 'react-redux';
 import React from 'react';
-import { getNeeds } from '../store/needer.js';
+import { getNeeds, needsLoading } from '../store/needer.js';
 import { getTextByStatus, getIconNameByStatus, getBackgrounColorByStatus } from '../utils/functions.js';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -12,6 +12,7 @@ export default function Needs({ navigation }) {
     const [packagedExpanded, setPackagedExpanded] = React.useState(true);
     const [restaurantExpanded, setRestaurantExpanded] = React.useState(true);
     const needs = useSelector(state => state.needer.needs);
+    const loading = useSelector(state => state.needer.needsLoading);
     const [packagedNeeds, setPackagedNeeds] = React.useState([]);
     const [restaurantNeeds, setRestaurantNeeds] = React.useState([]);
 
@@ -28,6 +29,7 @@ export default function Needs({ navigation }) {
             const restaurant = needs.filter(need => need.openFood !== null);
             packaged && setPackagedNeeds(packaged);
             restaurant && setRestaurantNeeds(restaurant);
+            store.dispatch(needsLoading(false));
         }
     }, [needs]);
 
@@ -59,7 +61,7 @@ export default function Needs({ navigation }) {
                         right={props => <List.Icon color={packagedExpanded ? 'white' : undefined} icon={packagedExpanded ? "chevron-up" : "chevron-down"} />}
                         expanded={packagedExpanded}
                         onPress={handlePackagedExpanded}>
-                        {packagedNeeds && packagedNeeds.length > 0 ? packagedNeeds.map((need, idx) => {
+                        {packagedNeeds && packagedNeeds.length > 0 && !loading ? packagedNeeds.map((need, idx) => {
                             return (
                                 <List.Item
                                     key={idx}
@@ -80,7 +82,7 @@ export default function Needs({ navigation }) {
                                     onPress={() => navigation.navigate('PackagedNeed', { need: need })}
                                 />
                             );
-                        })
+                        }) : loading ? <ActivityIndicator animating={true} color={'tomato'} size={'large'} style={{ marginTop: 20, marginRight: 70 }} />
                             : <List.Item
                                 title="No Needs"
                                 description="You have no packaged food needs yet."
@@ -99,7 +101,7 @@ export default function Needs({ navigation }) {
                         left={props => <List.Icon color={restaurantExpanded ? 'white' : undefined} icon="food" />}
                         right={props => <List.Icon color={restaurantExpanded ? 'white' : undefined} icon={restaurantExpanded ? "chevron-up" : "chevron-down"} />}
                     >
-                        {restaurantNeeds && restaurantNeeds.length > 0 ? restaurantNeeds.map((need, idx) => {
+                        {restaurantNeeds && restaurantNeeds.length > 0 && !loading ? restaurantNeeds.map((need, idx) => {
                             return (
                                 <List.Item
                                     key={idx}
@@ -120,7 +122,7 @@ export default function Needs({ navigation }) {
                                     onPress={() => navigation.navigate('RestaurantNeed', { need: need })}
                                 />
                             );
-                        })
+                        }) : loading ? <ActivityIndicator animating={true} color={'tomato'} size={'large'} style={{ marginTop: 20, marginRight: 70 }} />
                             : <List.Item
                                 title="No Needs"
                                 description="You have no restaurant food needs yet."

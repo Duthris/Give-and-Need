@@ -466,7 +466,6 @@ export const updateGiveStatusToNextStep = async (req: Request, res: Response) =>
             if (donation.packagedFood?.giverUserId !== Number(id)) throw new BadRequestError('Donation not found in your donations!');
             const currentStatus = donation.status;
             let nextStatus;
-            console.log(currentStatus);
             switch (currentStatus) {
                 case 'pending':
                     nextStatus = DonationStatus.accepted;
@@ -486,6 +485,10 @@ export const updateGiveStatusToNextStep = async (req: Request, res: Response) =>
                 },
                 data: {
                     status: nextStatus
+                },
+                include: {
+                    packagedFood: true,
+                    FoodBox: true
                 }
             })
             const { createdAt, updatedAt, ...rest } = updatedDonation;

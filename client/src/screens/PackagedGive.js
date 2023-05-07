@@ -1,18 +1,15 @@
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { Modal, Portal, Appbar, Card, Button, Chip, TextInput, IconButton } from 'react-native-paper';
+import { StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Appbar, Card, Button, TextInput } from 'react-native-paper';
 import React from 'react';
-import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import store from '../store/store.js';
 import moment from 'moment';
 import { showToast } from '../utils/functions.js';
-// import { getBackgrounColorByStatus, getTextByStatus, getIconNameByStatus } from '../utils/functions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as ImagePicker from 'expo-image-picker';
 import { getDownloadURL, ref } from "firebase/storage";
 import { uploadImage, storage } from '../firebase.js';
 import { EMPTY_PACKAGED_FOOD_PHOTO } from "@env";
 import { updateGive } from '../store/giver.js';
-// import { updatGiveStatusToNextStep } from '../store/giver.js';
 
 export default function PackagedGive({ navigation, route }) {
     const { give } = route.params;
@@ -48,22 +45,6 @@ export default function PackagedGive({ navigation, route }) {
 
         setExpirationDate(dateString)
     }
-
-    // const [visible, setVisible] = React.useState(false);
-
-    // const showModal = () => setVisible(true);
-    // const hideModal = () => setVisible(false);
-
-    // const handleUpdateStatus = async (status) => {
-    //     console.log(give.id);
-    //     await store.dispatch(updatGiveStatusToNextStep({ donationId: give.id }));
-    // }
-
-    // const handleRemovePhoto = async () => {
-    //     setPhoto(EMPTY_PACKAGED_FOOD_PHOTO);
-    // }
-
-    // https://www.micvac.com/wp-content/uploads/2015/12/mv_simply_delicious.png
 
     const pickPhoto = async () => {
         const { assets, canceled } = await ImagePicker.launchImageLibraryAsync({
@@ -174,30 +155,6 @@ export default function PackagedGive({ navigation, route }) {
                         mode='outlined'
                         keyboardType='numeric'
                     />
-
-
-                    {/* <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                        <Portal>
-                            <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={styles.modal}>
-                                <Text style={styles.modalText}>Are you sure you want to remove the photo?</Text>
-                                <Button onPress={handleUpdateStatus} textColor={'tomato'} style={{ width: '30%', alignSelf: 'center' }} icon='check'>Yes</Button>
-                                <Button onPress={hideModal} textColor={'tomato'} style={{ width: '30%', alignSelf: 'center' }} icon='close'>No</Button>
-                            </Modal>
-                        </Portal>
-                        <Chip style={[styles.chip, { backgroundColor: getBackgrounColorByStatus(give.status) }]}
-                            icon={() => <Icons name={getIconNameByStatus(give.status)} size={30} color={'white'} />}
-                            mode='outlined'
-                        >
-                            <Text style={styles.chipText}>{getTextByStatus(give.status)}</Text>
-                        </Chip>
-                        <IconButton
-                            icon="arrow-right"
-                            containerColor={'#01b34a'}
-                            iconColor={'white'}
-                            size={30}
-                            onPress={showModal}
-                        />
-                    </View> */}
                     <TouchableOpacity onPress={pickPhoto} style={styles.cover}>
                         <Image source={{ uri: photo }} style={styles.photo} />
                     </TouchableOpacity>
@@ -313,16 +270,5 @@ const styles = StyleSheet.create({
             placeholder: '#ccc',
             text: '#000',
         }
-    },
-    modal: {
-        backgroundColor: 'white',
-        padding: 20,
-        margin: 20,
-        borderRadius: 20,
-    },
-    modalText: {
-        fontSize: 18,
-        textAlign: 'center',
-        marginBottom: 20,
     },
 })
