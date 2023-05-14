@@ -67,6 +67,10 @@ export default function LoginForm({ handleSubmit, handleVerify, handleForgot, ha
         store.dispatch(send({ email: email })).then((res) => res.meta.requestStatus === 'fulfilled' && showToast('Code sent successfully!'));
     }
 
+    const isValidEmail = (email) => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             {!noEmail && (
@@ -319,7 +323,7 @@ export default function LoginForm({ handleSubmit, handleVerify, handleForgot, ha
                                         onPress={!codeSent ? forgot : change}
                                         textColor={'tomato'}
                                         style={{ width: '50%', alignSelf: 'center' }}
-                                        disabled={!codeSent ? !email : !code || !password || !confirmationPassword}
+                                        disabled={!codeSent ? !isValidEmail(email) : code.length !== 6 || password.length < 6 || password !== confirmationPassword}
                                         loading={forgotLoading || changeLoading}
                                     >
                                         {!codeSent ? 'Send Code' : 'Change Password'}
@@ -388,7 +392,13 @@ export default function LoginForm({ handleSubmit, handleVerify, handleForgot, ha
                         </Paper.Dialog.Content>
                         <Paper.Dialog.Actions>
                             <Paper.Button onPress={hideDialog} textColor={'tomato'} style={{ width: '30%', alignSelf: 'center' }}>Cancel</Paper.Button>
-                            <Paper.Button textColor={'tomato'} style={{ width: '30%', alignSelf: 'center' }} loading={verifyLoading} onPress={verify}>Verify</Paper.Button>
+                            <Paper.Button
+                                textColor={'tomato'}
+                                style={{ width: '30%', alignSelf: 'center' }}
+                                loading={verifyLoading}
+                                onPress={verify}
+                                disabled={isValidEmail(email) && code.length === 6 ? false : true}
+                            >Verify</Paper.Button>
                         </Paper.Dialog.Actions>
                     </Paper.Dialog>
                 </>
