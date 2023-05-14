@@ -92,7 +92,7 @@ export const neederRegister = async (req: Request, res: Response) => {
             if (needer) throw new BadRequestError('Needer already exists!');
             const code = voucher_codes.generate({
                 length: 6,
-                charset: voucher_codes.charset("alphabetic")
+                charset: voucher_codes.charset("numbers")
             });
 
             const hash = await hashPassword(enteredPassword);
@@ -164,8 +164,7 @@ export const verifyNeeder = async (req: Request, res: Response) => {
                 }
             })
             const { password, createdAt, updatedAt, ...rest } = needer;
-            const token = generateToken(needer, 'needer');
-            res.status(200).json({ success: true, data: { ...rest, token } });
+            res.status(200).json({ success: true, data: { ...rest, needer } });
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });
         }
@@ -662,6 +661,117 @@ export const markAsCompletedNeed = async (req: Request, res: Response) => {
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });
         }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    try {
+        const code = voucher_codes.generate({
+            length: 6,
+            charset: voucher_codes.charset("numbers")
+        });
+
+        const user = await prisma.neederUser.findUnique({
+            where: {
+                email
+            }
+        });
+        if (!user) throw new BadRequestError('Needer not found!');
+        const updatedUser = await prisma.neederUser.update({
+            where: {
+                email
+            },
+            data: {
+                verificationCode: code[0]
+            }
+        })
+
+        if (!updatedUser) throw new BadRequestError('Needer not found!');
+
+        await sendEmail(email, 'Change Password', `Verification code: ${code[0]}`);
+
+        res.status(200).json({ success: true, message: 'Verification code sent to your email!' });
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const changePassword = async (req: Request, res: Response) => {
+    const { email, password, verificationCode } = req.body;
+    try {
+        const user = await prisma.neederUser.findUnique({
+            where: {
+                email
+            }
+        });
+        if (!user) throw new BadRequestError('Needer not found!');
+        if (user.verificationCode !== verificationCode) throw new BadRequestError('Verification code is not correct!');
+
+
+        const newVerificationCode = voucher_codes.generate({
+            length: 6,
+            charset: voucher_codes.charset("numbers")
+        });
+
+        const updatedUser = await prisma.neederUser.update({
+            where: {
+                email
+            },
+            data: {
+                password: await hashPassword(password),
+                verificationCode: newVerificationCode[0]
+            }
+        })
+
+        if (!updatedUser) throw new BadRequestError('Needer not found!');
+
+        res.status(200).json({ success: true, data: { message: 'Password changed successfully!' } });
+
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const reSendVerificationCode = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    try {
+        const code = voucher_codes.generate({
+            length: 6,
+            charset: voucher_codes.charset("numbers")
+        });
+
+        const user = await prisma.neederUser.findUnique({
+            where: {
+                email
+            }
+        });
+        if (!user) throw new BadRequestError('Needer not found!');
+        const updatedUser = await prisma.neederUser.update({
+            where: {
+                email
+            },
+            data: {
+                verificationCode: code[0]
+            }
+        })
+
+        if (!updatedUser) throw new BadRequestError('Needer not found!');
+
+        await sendEmail(email, 'Verification Code', `Verification code: ${code[0]}`);
+
+        res.status(200).json({ success: true, message: 'Verification code sent to your email!' });
     } catch (e) {
         let message;
         if (e instanceof Error) message = e.message;

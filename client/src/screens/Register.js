@@ -1,4 +1,4 @@
-import { StyleSheet, SafeAreaView, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, SafeAreaView, Text } from 'react-native';
 import React, { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as Paper from 'react-native-paper';
@@ -223,12 +223,6 @@ export default function Register({ navigation }) {
                 >
                     <Text style={styles.buttonText}>Register</Text>
                 </Paper.Button>
-
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('Login')}
-                >
-                    <Text style={styles.loginText}>Already have an account?</Text>
-                </TouchableOpacity>
             </SafeAreaView>
         </KeyboardAwareScrollView>
     );

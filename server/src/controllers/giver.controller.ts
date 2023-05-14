@@ -93,7 +93,7 @@ export const giverRegister = async (req: Request, res: Response) => {
 
             const code = voucher_codes.generate({
                 length: 6,
-                charset: voucher_codes.charset("alphabetic")
+                charset: voucher_codes.charset("numbers")
             });
 
             const hash = await hashPassword(enteredPassword);
@@ -138,7 +138,7 @@ export const verifyGiver = async (req: Request, res: Response) => {
                 }
             });
             if (!giver) throw new BadRequestError('Giver not found!');
-            if (giver.verified) throw new BadRequestError('Giver already verified!');
+            if (giver.verified === true) throw new BadRequestError('Giver already verified!');
             if (giver.verificationCode !== verificationCode) throw new BadRequestError('Invalid verification code!');
             await prisma.giverUser.update({
                 where: {
@@ -149,8 +149,7 @@ export const verifyGiver = async (req: Request, res: Response) => {
                 }
             })
             const { password, createdAt, updatedAt, ...rest } = giver;
-            const token = generateToken(giver, 'giver');
-            res.status(200).json({ success: true, data: { ...rest, token } });
+            res.status(200).json({ success: true, data: { ...rest, giver } });
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });
         }
@@ -230,25 +229,36 @@ export const makeDonation = async (req: Request, res: Response) => {
     try {
         const id = getIdFromToken(req);
         const { name, photo, quantity, description, expirationDate } = req.body;
+
         try {
             const giver = await prisma.giverUser.findUnique({
                 where: {
                     id: Number(id)
                 }
             });
+
             if (!giver) throw new BadRequestError('Giver not found!');
-            const packagedFood = await prisma.packagedFood.create({
-                data: {
-                    name,
-                    photo: photo,
-                    quantity: Number(quantity) || 1,
-                    description: description || '',
-                    giverUserId: Number(id),
-                    expirationDate: expirationDate || null,
-                }
-            })
-            const { createdAt, updatedAt, ...rest } = packagedFood;
-            res.status(200).json({ success: true, data: { ...rest } });
+            try {
+                const packagedFood = await prisma.packagedFood.create({
+                    data: {
+                        name,
+                        photo: photo,
+                        quantity: Number(quantity) || 1,
+                        description: description || '',
+                        giverUserId: Number(id),
+                        expirationDate: expirationDate || null,
+                        ownable: true
+                    }
+                })
+
+                const { createdAt, updatedAt, ...rest } = packagedFood;
+                res.status(200).json({ success: true, data: { ...rest } });
+            } catch (error) {
+                let message;
+                if (error instanceof Error) message = error.message;
+                else message = String(error);
+                res.status(400).json({ success: false, message });
+            }
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });
         }
@@ -263,7 +273,8 @@ export const makeDonation = async (req: Request, res: Response) => {
 export const deleteDonation = async (req: Request, res: Response) => {
     try {
         const id = getIdFromToken(req);
-        const { id: packagedFoodId } = req.body;
+        const { id: packagedFoodId } = req.params;
+
         try {
             const giver = await prisma.giverUser.findUnique({
                 where: {
@@ -278,12 +289,19 @@ export const deleteDonation = async (req: Request, res: Response) => {
             });
             if (!packagedFood) throw new BadRequestError('Packaged food not found!');
             if (packagedFood.giverUserId !== Number(id)) throw new BadRequestError('Packaged food not found in your foods!');
-            await prisma.packagedFood.delete({
-                where: {
-                    id: Number(packagedFoodId)
-                }
-            })
-            res.status(200).json({ success: true, data: {} });
+            try {
+                await prisma.packagedFood.delete({
+                    where: {
+                        id: Number(packagedFoodId)
+                    }
+                })
+                res.status(200).json({ success: true, data: packagedFood });
+            } catch (error) {
+                let message;
+                if (error instanceof Error) message = error.message;
+                else message = String(error);
+                res.status(400).json({ success: false, message });
+            }
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });
         }
@@ -542,6 +560,117 @@ export const cancelOwnedDonation = async (req: Request, res: Response) => {
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });
         }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    try {
+        const code = voucher_codes.generate({
+            length: 6,
+            charset: voucher_codes.charset("numbers")
+        });
+
+        const user = await prisma.giverUser.findUnique({
+            where: {
+                email
+            }
+        });
+        if (!user) throw new BadRequestError('Giver not found!');
+        const updatedUser = await prisma.giverUser.update({
+            where: {
+                email
+            },
+            data: {
+                verificationCode: code[0]
+            }
+        })
+
+        if (!updatedUser) throw new BadRequestError('Giver not found!');
+
+        await sendEmail(email, 'Change Password', `Verification code: ${code[0]}`);
+
+        res.status(200).json({ success: true, message: 'Verification code sent to your email!' });
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const changePassword = async (req: Request, res: Response) => {
+    const { email, password, verificationCode } = req.body;
+    try {
+        const user = await prisma.giverUser.findUnique({
+            where: {
+                email
+            }
+        });
+        if (!user) throw new BadRequestError('Giver not found!');
+        if (user.verificationCode !== verificationCode) throw new BadRequestError('Verification code is not correct!');
+
+
+        const newVerificationCode = voucher_codes.generate({
+            length: 6,
+            charset: voucher_codes.charset("numbers")
+        });
+
+        const updatedUser = await prisma.giverUser.update({
+            where: {
+                email
+            },
+            data: {
+                password: await hashPassword(password),
+                verificationCode: newVerificationCode[0]
+            }
+        })
+
+        if (!updatedUser) throw new BadRequestError('Giver not found!');
+
+        res.status(200).json({ success: true, data: { message: 'Password changed successfully!' } });
+
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const reSendVerificationCode = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    try {
+        const code = voucher_codes.generate({
+            length: 6,
+            charset: voucher_codes.charset("numbers")
+        });
+
+        const user = await prisma.giverUser.findUnique({
+            where: {
+                email
+            }
+        });
+        if (!user) throw new BadRequestError('Giver not found!');
+        const updatedUser = await prisma.giverUser.update({
+            where: {
+                email
+            },
+            data: {
+                verificationCode: code[0]
+            }
+        })
+
+        if (!updatedUser) throw new BadRequestError('Giver not found!');
+
+        await sendEmail(email, 'Change Password', `Verification code: ${code[0]}`);
+
+        res.status(200).json({ success: true, message: 'Verification code sent to your email!' });
     } catch (e) {
         let message;
         if (e instanceof Error) message = e.message;

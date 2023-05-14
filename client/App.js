@@ -17,6 +17,7 @@ import RestaurantNeed from './src/screens/RestaurantNeed';
 import Gives from './src/screens/Gives';
 import PackagedGive from './src/screens/PackagedGive';
 import OwnedPackagedGive from './src/screens/OwnedPackagedGive';
+import MakeDonation from './src/screens/MakeDonation';
 
 export default function App() {
   axios.interceptors.request.use(
@@ -99,6 +100,13 @@ export default function App() {
               <Stack.Screen
                 name='OwnedPackagedGive'
                 component={OwnedPackagedGive}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name='MakeDonation'
+                component={MakeDonation}
                 options={{
                   headerShown: false,
                 }}

@@ -8,7 +8,63 @@ const initialState = {
     needs: [],
     needer: null,
     needsLoading: true,
+    forgotLoading: false,
+    changeLoading: false,
+    verifyLoading: false,
+    resendLoading: false,
 }
+
+export const verifyNeeder = createAsyncThunk(
+    'needer/verify-needer',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.put('/needers/auth/verify', data);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
+export const forgotPasswordNeeder = createAsyncThunk(
+    'needer/forgot-password',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/needers/auth/forgot-password', data);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
+export const changePasswordNeeder = createAsyncThunk(
+    'needer/change-password',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.put('/needers/auth/change-password', data);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
+export const reSendVerificationCode = createAsyncThunk(
+    'needer/resend-verification-code',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/needers/auth/resend-verification-code', data);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
 
 export const getNeederDetail = createAsyncThunk(
     'needer/detail',
@@ -75,6 +131,50 @@ const neederSlice = createSlice({
     },
     extraReducers: (builder) =>
         builder
+            .addCase(verifyNeeder.pending, (state) => {
+                state.verifyLoading = true;
+                state.neederError = null;
+            })
+            .addCase(verifyNeeder.fulfilled, (state) => {
+                state.verifyLoading = false;
+            })
+            .addCase(verifyNeeder.rejected, (state, { payload }) => {
+                state.verifyLoading = false;
+                state.neederError = payload;
+            })
+            .addCase(forgotPasswordNeeder.pending, (state) => {
+                state.forgotLoading = true;
+                state.neederError = null;
+            })
+            .addCase(forgotPasswordNeeder.fulfilled, (state) => {
+                state.forgotLoading = false;
+            })
+            .addCase(forgotPasswordNeeder.rejected, (state, { payload }) => {
+                state.forgotLoading = false;
+                state.neederError = payload;
+            })
+            .addCase(changePasswordNeeder.pending, (state) => {
+                state.changeLoading = true;
+                state.neederError = null;
+            })
+            .addCase(changePasswordNeeder.fulfilled, (state) => {
+                state.changeLoading = false;
+            })
+            .addCase(changePasswordNeeder.rejected, (state, { payload }) => {
+                state.changeLoading = false;
+                state.neederError = payload;
+            })
+            .addCase(reSendVerificationCode.pending, (state) => {
+                state.resendLoading = true;
+                state.neederError = null;
+            })
+            .addCase(reSendVerificationCode.fulfilled, (state) => {
+                state.resendLoading = false;
+            })
+            .addCase(reSendVerificationCode.rejected, (state, { payload }) => {
+                state.resendLoading = false;
+                state.neederError = payload;
+            })
             .addCase(getNeederDetail.pending, (state) => {
                 state.neederLoading = true;
             })

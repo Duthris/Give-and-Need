@@ -144,15 +144,26 @@ export default function NavBar({ navigation }) {
                                                     />
                                                 )}
                                                 {role === 'giver' && (
-                                                    <Menu.Item
-                                                        onPress={() => {
-                                                            navigation.navigate('Gives')
-                                                            closeMenu()
-                                                        }}
-                                                        title="My Gives"
-                                                        leadingIcon={() => <Icons name="hand-heart" style={{ marginBottom: 2, marginLeft: 2 }} size={24} color="tomato" />}
-                                                        titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
-                                                    />
+                                                    <>
+                                                        <Menu.Item
+                                                            onPress={() => {
+                                                                navigation.navigate('Gives')
+                                                                closeMenu()
+                                                            }}
+                                                            title="My Gives"
+                                                            leadingIcon={() => <Icons name="hand-heart" style={{ marginBottom: 2, marginLeft: 2 }} size={24} color="tomato" />}
+                                                            titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
+                                                        />
+                                                        <Menu.Item
+                                                            onPress={() => {
+                                                                navigation.navigate('MakeDonation')
+                                                                closeMenu()
+                                                            }}
+                                                            title="Make Donation"
+                                                            leadingIcon={() => <Icons name="plus-circle" style={{ marginBottom: 2, marginLeft: 2 }} size={24} color="tomato" />}
+                                                            titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
+                                                        />
+                                                    </>
                                                 )}
                                             </Menu>
                                         </View>
