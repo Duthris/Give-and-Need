@@ -88,6 +88,9 @@ const authSlice = createSlice({
         },
         setRole: (state, { payload }) => {
             state.role = payload;
+        },
+        updateUser: (state, { payload }) => {
+            state.user = payload;
         }
     },
     extraReducers: (builder) =>
@@ -170,6 +173,6 @@ const authSlice = createSlice({
             })
 })
 
-export const { logout, clearAuthError, setRole } = authSlice.actions;
+export const { logout, clearAuthError, setRole, updateUser } = authSlice.actions;
 
 export default authSlice.reducer;

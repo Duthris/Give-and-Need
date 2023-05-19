@@ -6,6 +6,7 @@ const initialState = {
     giverLoading: false,
     giverError: null,
     gives: [],
+    giver: null,
     ownedGives: [],
     givesLoading: true,
     ownedGivesLoading: true,
@@ -13,6 +14,7 @@ const initialState = {
     changeLoading: false,
     verifyLoading: false,
     resendLoading: false,
+    updateLoading: false,
 }
 
 export const verifyGiver = createAsyncThunk(
@@ -114,7 +116,6 @@ export const updateGive = createAsyncThunk(
             return response.data;
         } catch (err) {
             showErrorToast(err.response.data.message);
-            console.log(err.response.data.message, 'asd');
             return rejectWithValue(err.response.data);
         }
     }
@@ -128,7 +129,6 @@ export const cancelGive = createAsyncThunk(
             return response.data;
         } catch (err) {
             showErrorToast(err.response.data.message);
-            console.log(err.response.data.message, 'asd');
             return rejectWithValue(err.response.data);
         }
     }
@@ -151,8 +151,20 @@ export const deleteDonation = createAsyncThunk(
     'giver/delete-donation',
     async (data, { rejectWithValue }) => {
         try {
-            console.log(`/givers/my-donations/${data.packagedFoodId}`);
             const response = await api.remove(`/givers/my-donations/${data.packagedFoodId}`);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
+export const updateGiver = createAsyncThunk(
+    'giver/update-giver',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.put('/givers/update-account', data);
             return response.data;
         } catch (err) {
             showErrorToast(err.response.data.message);
@@ -174,6 +186,9 @@ const giverSlice = createSlice({
         ownedGivesLoading: (state, { payload }) => {
             state.ownedGivesLoading = payload;
         },
+        updateGiverReducer: (state, { payload }) => {
+            state.giver = payload;
+        }
     },
     extraReducers: (builder) =>
         builder
@@ -305,8 +320,20 @@ const giverSlice = createSlice({
                 state.giverLoading = false;
                 state.giverError = payload;
             })
+            .addCase(updateGiver.pending, (state) => {
+                state.updateLoading = true;
+                state.giverError = null;
+            })
+            .addCase(updateGiver.fulfilled, (state, { payload }) => {
+                state.updateLoading = false;
+                state.giver = payload.data;
+            })
+            .addCase(updateGiver.rejected, (state, { payload }) => {
+                state.updateLoading = false;
+                state.giverError = payload;
+            })
 })
 
-export const { clearGiverError, givesLoading, ownedGivesLoading } = giverSlice.actions;
+export const { clearGiverError, givesLoading, ownedGivesLoading, updateGiverReducer } = giverSlice.actions;
 
 export default giverSlice.reducer;

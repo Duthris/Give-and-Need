@@ -61,7 +61,7 @@ export default function MakeDonation({ navigation }) {
     const setPhotoURL = async (pickedPhoto) => {
         const imageName = `${name}`
         const storageRef = ref(storage, `packaged_foods/${imageName}`);
-        await uploadImage(pickedPhoto, imageName).then(() => {
+        await uploadImage(pickedPhoto, imageName, 'packaged_foods').then(() => {
             setTimeout(async () => {
                 getDownloadURL(storageRef).then(url => {
                     setPhoto(url);

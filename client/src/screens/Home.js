@@ -11,6 +11,7 @@ import logo from '../../assets/giveandneed.png';
 import jwt_decode from 'jwt-decode';
 import { setRole } from '../store/auth.js';
 import { getNeederDetail } from '../store/needer.js';
+import { updateGiverReducer } from '../store/giver.js';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function Home() {
@@ -32,6 +33,8 @@ export default function Home() {
         React.useCallback(() => {
             if (decoded && decoded.role === 'needer') {
                 handleGetDailyQuota();
+            } else if (decoded && decoded.role === 'giver') {
+                store.dispatch(updateGiverReducer(user))
             }
         }, [])
     );
@@ -68,10 +71,15 @@ export default function Home() {
                         <SafeAreaView style={styles.container}>
                             {isLogged && (
                                 <>
-                                    {decoded.role !== 'restaurant' && (
+                                    {decoded.role !== 'restaurant' ? (
                                         <>
-                                            <Image source={user.photo ? { uri: user.photo } : null} style={styles.logo} />
+                                            <Image source={user.photo ? { uri: user.photo } : null} style={styles.avatar} />
                                             <Text style={styles.label}>Welcome to Give & Need - {user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) + ` ` + user.lastName.charAt(0).toUpperCase() + user.lastName.slice(1)}</Text>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Image source={user.photo ? { uri: user.photo } : null} style={styles.avatar} />
+                                            <Text style={styles.label}>Welcome to Give & Need - {user.name.charAt(0).toUpperCase() + user.name.slice(1)}</Text>
                                         </>
                                     )}
                                     {decoded.role === 'needer' && dailyQuota > 0 && (

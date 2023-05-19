@@ -4,6 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Home from '../../screens/Home';
 import Login from '../../screens/Login';
 import Register from '../../screens/Register';
+import Settings from '../../screens/Settings';
 import { useSelector } from "react-redux";
 import { View, Image, TouchableOpacity, Platform } from 'react-native';
 import native from '../../../assets/native.png';
@@ -174,11 +175,11 @@ export default function NavBar({ navigation }) {
                         />
                         <Tab.Screen
                             name="Settings"
-                            component={Home}
+                            component={Settings}
                             listeners={({ navigation, route }) => ({
                                 tabPress: e => {
                                     Animated.spring(tabOffset, {
-                                        toValue: getWidth() * 3.15,
+                                        toValue: getWidth() * 3.11,
                                         useNativeDriver: true
                                     }).start();
                                 }

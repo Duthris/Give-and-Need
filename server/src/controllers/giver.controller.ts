@@ -164,7 +164,7 @@ export const verifyGiver = async (req: Request, res: Response) => {
 export const updateGiver = async (req: Request, res: Response) => {
     try {
         const id = getIdFromToken(req);
-        const { firstName, lastName, email, phone, address, birthday } = req.body;
+        const { firstName, lastName, photo } = req.body;
         try {
             const giver = await prisma.giverUser.findUnique({
                 where: {
@@ -179,10 +179,7 @@ export const updateGiver = async (req: Request, res: Response) => {
                 data: {
                     firstName: firstName || giver.firstName,
                     lastName: lastName || giver.lastName,
-                    email: email || giver.email,
-                    phone: phone || giver.phone,
-                    address: address || giver.address,
-                    birthday: birthday || giver.birthday
+                    photo: photo || giver.photo
                 }
             })
             const { password, createdAt, updatedAt, ...rest } = updatedGiver;

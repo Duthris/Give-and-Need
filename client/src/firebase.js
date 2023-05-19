@@ -18,9 +18,9 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-export const uploadImage = async (uri, imageName) => {
+export const uploadImage = async (uri, imageName, path) => {
     const response = await fetch(uri);
     const blob = await response.blob();
-    const storageRef = ref(storage, `packaged_foods/${imageName}`);
+    const storageRef = ref(storage, `${path}/${imageName}`);
     uploadBytes(storageRef, blob);
 }

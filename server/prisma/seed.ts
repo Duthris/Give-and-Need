@@ -6,10 +6,23 @@ const prisma = new PrismaClient()
 async function seed() {
     const admin = await prisma.adminUser.create({
         data: {
-            email: 'admin@admin.com',
+            email: 'admin',
             password: await hashPassword('admin'),
         }
     })
+
+    const giver = await prisma.giverUser.create({
+        data: {
+            email: 'giver',
+            password: await hashPassword('giver'),
+        }
+    })
+    const needer = await prisma.neederUser.create({
+        data: {
+            email: 'needer',
+            password: await hashPassword('needer'),
+        }
+    }) 
 }
 
 seed()

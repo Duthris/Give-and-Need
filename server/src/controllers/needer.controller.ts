@@ -208,7 +208,7 @@ export const deleteNeeder = async (req: Request, res: Response) => {
 export const updateNeeder = async (req: Request, res: Response) => {
     try {
         const id = getIdFromToken(req);
-        const { firstName, lastName, phone, birthday } = req.body;
+        const { firstName, lastName, photo } = req.body;
         try {
             const needer = await prisma.neederUser.findUnique({
                 where: {
@@ -217,19 +217,18 @@ export const updateNeeder = async (req: Request, res: Response) => {
             });
             if (!needer) throw new BadRequestError('Needer not found!');
 
-            await prisma.neederUser.update({
+            const updatedNeeder = await prisma.neederUser.update({
                 where: {
                     id: Number(id)
                 },
                 data: {
                     firstName,
                     lastName,
-                    phone,
-                    birthday,
+                    photo
                 }
             })
 
-            res.status(200).json({ success: true, data: {} });
+            res.status(200).json({ success: true, data: updatedNeeder });
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });
         }

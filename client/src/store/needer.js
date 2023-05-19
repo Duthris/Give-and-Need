@@ -12,6 +12,7 @@ const initialState = {
     changeLoading: false,
     verifyLoading: false,
     resendLoading: false,
+    updateLoading: false,
 }
 
 export const verifyNeeder = createAsyncThunk(
@@ -110,6 +111,19 @@ export const needFood = createAsyncThunk(
     async (data, { rejectWithValue }) => {
         try {
             const response = await api.post('/needers/need-food', data);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
+export const updateNeeder = createAsyncThunk(
+    'needer/update-needer',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.put('/needers/update-account', data);
             return response.data;
         } catch (err) {
             showErrorToast(err.response.data.message);
@@ -219,12 +233,23 @@ const neederSlice = createSlice({
             })
             .addCase(needFood.fulfilled, (state, { payload }) => {
                 state.neederLoading = false;
-                console.log(payload.data);
             })
             .addCase(needFood.rejected, (state, action) => {
                 if (action.payload) state.neederError = action.payload.error;
                 else state.neederError = action.error.message;
                 state.neederLoading = false;
+            })
+            .addCase(updateNeeder.pending, (state) => {
+                state.updateLoading = true;
+            })
+            .addCase(updateNeeder.fulfilled, (state, { payload }) => {
+                state.updateLoading = false;
+                state.needer = payload.data;
+            })
+            .addCase(updateNeeder.rejected, (state, action) => {
+                if (action.payload) state.neederError = action.payload.error;
+                else state.neederError = action.error.message;
+                state.updateLoading = false;
             })
 })
 

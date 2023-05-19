@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { body } from 'express-validator';
 import {
     neederLogin, neederRegister, getNeeder, getNeeders, verifyNeeder, deleteNeeder, addFoodToBasket, getNeederBasket,
     needFood, getNeeds, getNeed, clearBasket, updateNeeder, resendFoodBoxPassword, markAsCompletedNeed, changePassword,
@@ -14,8 +13,7 @@ const router = Router();
 router.get('/', validateRequest, isAuthenticated, getNeeders);
 router.get('/needer/:id', isAuthenticated, getNeeder);
 router.post('/auth/login', neederLogin);
-router.post('/auth/register', body('email').isEmail().withMessage('Please enter a valid email'),
-    body('password').isLength({ min: 6, max: 32 }).withMessage('Password must be between 6 and 16 characters'),
+router.post('/auth/register',
     validateRequest,
     neederRegister
 );
@@ -30,8 +28,8 @@ router.put('/clear-basket', isAuthenticated, validateRequest, isNeeder, clearBas
 router.put('/update-account', isAuthenticated, validateRequest, isNeeder, updateNeeder);
 router.get('/resend-food-box-password/:id', resendFoodBoxPassword);
 router.put('/mark-as-completed-need/:id', isAuthenticated, validateRequest, isNeeder, markAsCompletedNeed);
-router.post('/auth/forgot-password', body('email').isEmail().withMessage('Please enter a valid email'), validateRequest, forgotPassword);
-router.put('/auth/change-password', body('password').isLength({ min: 6, max: 32 }).withMessage('Password must be between 6 and 16 characters'), validateRequest, changePassword);
-router.post('/auth/resend-verification-code', body('email').isEmail().withMessage('Please enter a valid email'), validateRequest, reSendVerificationCode);
+router.post('/auth/forgot-password', validateRequest, forgotPassword);
+router.put('/auth/change-password', validateRequest, changePassword);
+router.post('/auth/resend-verification-code', validateRequest, reSendVerificationCode);
 
 export default router;
