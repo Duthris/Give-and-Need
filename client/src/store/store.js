@@ -4,6 +4,7 @@ import auth from "./auth";
 import needer from "./needer";
 import donation from './donation';
 import giver from './giver';
+import restaurant from './restaurant';
 
 const store = configureStore({
     reducer: {
@@ -11,7 +12,8 @@ const store = configureStore({
         auth,
         needer,
         donation,
-        giver
+        giver,
+        restaurant
     },
     middleware: getDefaultMiddleware => getDefaultMiddleware({
         serializableCheck: false,

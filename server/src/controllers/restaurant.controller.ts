@@ -49,7 +49,7 @@ export const restaurantRegister = async (req: Request, res: Response) => {
                 }
             });
             if (restaurant) throw new BadRequestError('Restaurant already exists!');
-    
+
             const hash = await hashPassword(enteredPassword);
             const newRestaurant = await prisma.restaurantUser.create({
                 data: {
@@ -119,21 +119,26 @@ export const getRestaurant = async (req: Request, res: Response) => {
 export const updateRestaurant = async (req: Request, res: Response) => {
     try {
         const id = getIdFromToken(req);
-        const { email, phone, photo, name, address } = req.body;
+        const { phone, photo, name, address } = req.body;
         try {
-            const restaurant = await prisma.restaurantUser.update({
+            await prisma.restaurantUser.update({
                 where: {
                     id: Number(id)
                 },
                 data: {
-                    email,
                     phone,
                     photo,
                     name,
                     address
                 }
             });
-            res.status(200).json({ success: true, data: restaurant });
+
+            const updatedRestaurant = await prisma.restaurantUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
+            res.status(200).json({ success: true, data: updatedRestaurant });
         } catch (error: any) {
             res.status(400).json({ success: false, message: error.message });
         }

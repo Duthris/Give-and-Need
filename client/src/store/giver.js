@@ -173,6 +173,19 @@ export const updateGiver = createAsyncThunk(
     }
 )
 
+export const getGiverDetails = createAsyncThunk(
+    'giver/get-giver-details',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/givers/giver/${data.id}`);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
 const giverSlice = createSlice({
     name: 'giver',
     initialState,
@@ -330,6 +343,18 @@ const giverSlice = createSlice({
             })
             .addCase(updateGiver.rejected, (state, { payload }) => {
                 state.updateLoading = false;
+                state.giverError = payload;
+            })
+            .addCase(getGiverDetails.pending, (state) => {
+                state.giverLoading = true;
+                state.giverError = null;
+            })
+            .addCase(getGiverDetails.fulfilled, (state, { payload }) => {
+                state.giverLoading = false;
+                state.giver = payload.data;
+            })
+            .addCase(getGiverDetails.rejected, (state, { payload }) => {
+                state.giverLoading = false;
                 state.giverError = payload;
             })
 })

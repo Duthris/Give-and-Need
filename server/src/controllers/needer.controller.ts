@@ -217,7 +217,7 @@ export const updateNeeder = async (req: Request, res: Response) => {
             });
             if (!needer) throw new BadRequestError('Needer not found!');
 
-            const updatedNeeder = await prisma.neederUser.update({
+            await prisma.neederUser.update({
                 where: {
                     id: Number(id)
                 },
@@ -227,6 +227,12 @@ export const updateNeeder = async (req: Request, res: Response) => {
                     photo
                 }
             })
+
+            const updatedNeeder = await prisma.neederUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
 
             res.status(200).json({ success: true, data: updatedNeeder });
         } catch (e: any) {

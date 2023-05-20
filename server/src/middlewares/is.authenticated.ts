@@ -31,7 +31,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
         req.currentUser = payload;
         next();
     } catch (e) {
-        let message;        
+        let message;
         if (e instanceof Error) message = e.message;
         else message = String(e);
         res.status(400).json({ success: false, message })

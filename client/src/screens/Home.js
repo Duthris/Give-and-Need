@@ -11,7 +11,8 @@ import logo from '../../assets/giveandneed.png';
 import jwt_decode from 'jwt-decode';
 import { setRole } from '../store/auth.js';
 import { getNeederDetail } from '../store/needer.js';
-import { updateGiverReducer } from '../store/giver.js';
+import { getGiverDetails } from '../store/giver.js';
+import { getRestaurantDetail } from '../store/restaurant.js';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
     const decoded = isLogged ? jwt_decode(isLogged) : null;
     const user = useSelector((state) => state.auth.user);
     const dailyQuota = useSelector((state) => state.needer?.needer?.dailyNeedQuota);
+
     const handleLogout = () => {
         store.dispatch(openModal({
             name: 'logout',
@@ -31,10 +33,16 @@ export default function Home() {
 
     useFocusEffect(
         React.useCallback(() => {
-            if (decoded && decoded.role === 'needer') {
+            if (decoded && decoded.role === 'needer' && isLogged) {
                 handleGetDailyQuota();
-            } else if (decoded && decoded.role === 'giver') {
-                store.dispatch(updateGiverReducer(user))
+            }
+
+            if (decoded && decoded.role === 'giver' && isLogged) {
+                store.dispatch(getGiverDetails({ id: decoded.id })).then((res) => res.meta.requestStatus === 'fulfilled');
+            }
+
+            if (decoded && decoded.role === 'restaurant' && isLogged) {
+                store.dispatch(getRestaurantDetail({ id: decoded.id })).then((res) => res.meta.requestStatus === 'fulfilled');
             }
         }, [])
     );
@@ -43,7 +51,7 @@ export default function Home() {
         if (isLogged) {
             store.dispatch(setRole(decoded.role));
         }
-    }, [decoded])
+    }, [decoded]);
 
     return (
         <>

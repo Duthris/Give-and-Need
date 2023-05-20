@@ -18,6 +18,7 @@ export default function NavBar({ navigation }) {
     const Tab = createBottomTabNavigator();
     const user = useSelector(state => state.auth.user);
     const role = useSelector(state => state.auth.role);
+    const token = useSelector(state => state.auth.token);
     const tabOffset = React.useRef(new Animated.Value(0)).current;
 
     const [visible, setVisible] = React.useState(false);
@@ -26,6 +27,12 @@ export default function NavBar({ navigation }) {
 
     const closeMenu = () => setVisible(false);
 
+    React.useEffect(() => {
+        Animated.spring(tabOffset, {
+            toValue: 0,
+            useNativeDriver: true,
+        }).start();
+    }, [token])
 
     return (
         <>
