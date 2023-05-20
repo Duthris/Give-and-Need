@@ -27,21 +27,17 @@ export default function Home() {
         }));
     }
 
-    const handleGetDailyQuota = () => {
-        store.dispatch(getNeederDetail({ id: decoded.id })).then((res) => res.meta.requestStatus === 'fulfilled');
-    }
-
     useFocusEffect(
         React.useCallback(() => {
-            if (decoded && decoded.role === 'needer' && isLogged) {
-                handleGetDailyQuota();
+            if (decoded && decoded.role === 'needer') {
+                store.dispatch(getNeederDetail({ id: decoded.id })).then((res) => res.meta.requestStatus === 'fulfilled');
             }
 
-            if (decoded && decoded.role === 'giver' && isLogged) {
+            if (decoded && decoded.role === 'giver') {
                 store.dispatch(getGiverDetails({ id: decoded.id })).then((res) => res.meta.requestStatus === 'fulfilled');
             }
 
-            if (decoded && decoded.role === 'restaurant' && isLogged) {
+            if (decoded && decoded.role === 'restaurant') {
                 store.dispatch(getRestaurantDetail({ id: decoded.id })).then((res) => res.meta.requestStatus === 'fulfilled');
             }
         }, [])

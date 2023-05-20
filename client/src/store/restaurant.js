@@ -29,7 +29,6 @@ export const getRestaurantDetail = createAsyncThunk(
             const response = await api.get(`/restaurants/restaurant/${data.id}`);
             return response.data;
         } catch (err) {
-            showErrorToast(err.response.data.message);
             return rejectWithValue(err.response.data);
         }
     }

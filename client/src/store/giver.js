@@ -180,7 +180,6 @@ export const getGiverDetails = createAsyncThunk(
             const response = await api.get(`/givers/giver/${data.id}`);
             return response.data;
         } catch (err) {
-            showErrorToast(err.response.data.message);
             return rejectWithValue(err.response.data);
         }
     }

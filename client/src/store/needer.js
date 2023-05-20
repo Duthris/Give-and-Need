@@ -74,7 +74,6 @@ export const getNeederDetail = createAsyncThunk(
             const response = await api.get(`/needers/needer/${data.id}`);
             return response.data;
         } catch (err) {
-            showErrorToast(err.response.data.message);
             return rejectWithValue(err.response.data);
         }
     }
