@@ -58,3 +58,30 @@ export const foodBoxCoordinates = [
         longitude: 30.620432265195124,
     },
 ]
+
+export const slides = [
+    {
+        id: '1',
+        title: 'Anonymous Gives & Needs',
+        description: 'Make a difference without revealing your identity. Donate your excess food anonymously, providing nourishment to those in need. Likewise, as a needer, receive food without hesitation, ensuring your anonymity.',
+        image: require('../../assets/animations/slides/first.png'),
+    },
+    {
+        id: '2',
+        title: 'Food Boxes for Sharing',
+        description: 'Discover designated food boxes placed throughout the streets. Givers can contribute their excess food, while needers can access the donated food anonymously by entering the box password.',
+        image: require('../../assets/animations/slides/second.png'),
+    },
+    {
+        id: '3',
+        title: 'Restaurant Support',
+        description: 'Choose between self-pickup or restaurant delivery. Participating restaurants offer the option for needers to collect food directly or have it delivered to their preferred address.',
+        image: require('../../assets/animations/slides/third.png'),
+    },
+    {
+        id: '4',
+        title: 'Join the Food Sharing Community Now!',
+        description: 'Become part of a compassionate community that values giving and reducing food wastage. Together, we can make a positive impact by ensuring no food goes to waste!',
+        image: require('../../assets/animations/slides/fourth.png'),
+    }
+];

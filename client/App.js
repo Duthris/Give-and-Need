@@ -19,6 +19,8 @@ import PackagedGive from './src/screens/PackagedGive';
 import OwnedPackagedGive from './src/screens/OwnedPackagedGive';
 import MakeDonation from './src/screens/MakeDonation';
 import Settings from './src/screens/Settings';
+import Onboarding from './src/components/Onboarding';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
   axios.interceptors.request.use(
@@ -32,7 +34,26 @@ export default function App() {
     (error) => {
       return Promise.reject(error)
     }
-  )
+  );
+
+  const clearOnboarding = async () => {
+    try {
+      await AsyncStorage.removeItem('@viewedOnboarding');
+    } catch (error) {
+      console.log('Error @clearOnboarding: ', error);
+    }
+  }
+
+  React.useEffect(() => {
+    const version = AsyncStorage.getItem('@version')
+    const packageJson = require('./package.json');
+    const appVersion = packageJson.version;
+
+    if (!version || version !== appVersion) {
+      clearOnboarding()
+      AsyncStorage.setItem('@version', appVersion)
+    } else return;
+  }, [])
 
   const Stack = createNativeStackNavigator();
 
@@ -115,6 +136,13 @@ export default function App() {
               <Stack.Screen
                 name='Settings'
                 component={Settings}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name='Onboarding'
+                component={Onboarding}
                 options={{
                   headerShown: false,
                 }}
