@@ -24,6 +24,7 @@ import Onboarding from './src/components/Onboarding';
 import RestaurantGives from './src/screens/RestaurantGives';
 import OwnedOpenDonation from './src/screens/OwnedOpenDonation';
 import OpenDonation from './src/screens/OpenDonation';
+import MakeOpenDonation from './src/screens/MakeOpenDonation';
 
 export default function App() {
   axios.interceptors.request.use(
@@ -167,6 +168,13 @@ export default function App() {
               <Stack.Screen
                 name='OpenDonation'
                 component={OpenDonation}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name='MakeOpenDonation'
+                component={MakeOpenDonation}
                 options={{
                   headerShown: false,
                 }}

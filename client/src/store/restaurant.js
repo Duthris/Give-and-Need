@@ -129,7 +129,6 @@ export const updateDonationStatusToNextStep = createAsyncThunk(
     }
 )
 
-
 const restaurantSlice = createSlice({
     name: 'restaurant',
     initialState,

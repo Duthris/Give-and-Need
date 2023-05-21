@@ -188,11 +188,12 @@ export const makeOpenFoodDonation = async (req: Request, res: Response) => {
                     name,
                     description,
                     photo,
-                    quantity,
+                    quantity: Number(quantity),
                     selfPickup,
-                    restaurantUserId: Number(id)
+                    restaurantUserId: Number(id),
                 }
             });
+
             res.status(200).json({ success: true, data: openFood });
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });
