@@ -4,6 +4,7 @@ import { comparePassword, hashPassword } from '../utils/password';
 import generateToken from '../utils/generateToken';
 import { BadRequestError } from '../errors/bad-request-error';
 import { getIdFromToken } from '../utils/token';
+import { DonationStatus } from '@prisma/client';
 
 export const restaurantLogin = async (req: Request, res: Response) => {
     try {
@@ -236,5 +237,258 @@ export const deleteDonation = async (req: Request, res: Response) => {
         if (e instanceof Error) message = e.message;
         else message = String(e);
         throw new BadRequestError(message);
+    }
+}
+
+export const getDonations = async (req: Request, res: Response) => {
+    const id = getIdFromToken(req);
+    try {
+        try {
+            const restaurant = await prisma.restaurantUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
+            if (!restaurant) throw new BadRequestError('Restaurant not found!');
+            const donations = await prisma.openFood.findMany({
+                where: {
+                    restaurantUserId: Number(id),
+                    quantity: {
+                        gt: 0
+                    }
+                },
+            });
+            res.status(200).json({ success: true, data: donations });
+        } catch (e: any) {
+            res.status(400).json({ success: false, message: e.message });
+        }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        throw new BadRequestError(message);
+    }
+}
+
+export const getOwnedDonations = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        try {
+            const restaurant = await prisma.restaurantUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
+            if (!restaurant) throw new BadRequestError('Restaurant not found!');
+
+            const openFoods = await prisma.openFood.findMany({
+                where: {
+                    restaurantUserId: Number(id),
+                },
+            })
+
+            const donations = await Promise.all(openFoods.map(async (openFood) => {
+                const donation = await prisma.donation.findFirst({
+                    where: {
+                        openFoodId: openFood.id
+                    },
+                    include: {
+                        openFood: true,
+                        neederUser: {
+                            include: {
+                                Address: true
+                            }
+                        }
+                    }
+                })
+                return donation
+            }))
+
+            const filteredDonations = donations.filter((donation) => donation !== null);
+
+            res.status(200).json({ success: true, data: filteredDonations });
+        } catch (e: any) {
+            res.status(400).json({ success: false, message: e.message });
+        }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const updateDonation = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        const openFoodId = req.params.id;
+        const { name, photo, quantity, description, selfPickup } = req.body;
+        try {
+            const restaurant = await prisma.restaurantUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
+            if (!restaurant) throw new BadRequestError('Restaurant not found!');
+            const openFood = await prisma.openFood.findUnique({
+                where: {
+                    id: Number(openFoodId)
+                }
+            });
+            if (!openFood) throw new BadRequestError('Donation not found!');
+            if (openFood.restaurantUserId !== Number(id)) throw new BadRequestError('Donation not found in your foods!');
+
+            await prisma.openFood.update({
+                where: {
+                    id: Number(openFoodId)
+                },
+                data: {
+                    name: name || openFood.name,
+                    photo: photo || openFood.photo,
+                    quantity: Number(quantity) || openFood.quantity,
+                    description: description || openFood.description,
+                    selfPickup: selfPickup
+                }
+            })
+
+            const updatedOpenFood = await prisma.openFood.findUnique({
+                where: {
+                    id: Number(openFoodId)
+                }
+            });
+
+            res.status(200).json({ success: true, data: updatedOpenFood });
+        } catch (e: any) {
+            res.status(400).json({ success: false, message: e.message });
+        }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const cancelOwnedDonation = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        const { id: donationId } = req.params;
+        try {
+            const restaurant = await prisma.restaurantUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
+            if (!restaurant) throw new BadRequestError('Restaurant not found!');
+            const donation = await prisma.donation.findUnique({
+                where: {
+                    id: Number(donationId)
+                },
+                include: {
+                    openFood: true,
+                }
+            });
+            if (!donation) throw new BadRequestError('Donation not found!');
+            if (donation.openFood?.restaurantUserId !== Number(id)) throw new BadRequestError('Donation not found in your donations!');
+            await prisma.donation.update({
+                where: {
+                    id: Number(donationId)
+                },
+                data: {
+                    status: DonationStatus.rejected
+                },
+                include: {
+                    openFood: true
+                }
+            })
+
+            const updatedDonation = await prisma.donation.findUnique({
+                where: {
+                    id: Number(donationId)
+                },
+                include: {
+                    openFood: true
+                }
+            })
+
+            res.status(200).json({ success: true, data: updatedDonation });
+        } catch (e: any) {
+            res.status(400).json({ success: false, message: e.message });
+        }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const updateDonationStatusToNextStep = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        const { id: donationId } = req.params;
+        try {
+            const restaurant = await prisma.restaurantUser.findUnique({
+                where: {
+                    id: Number(id)
+                }
+            });
+            if (!restaurant) throw new BadRequestError('Restaurant not found!');
+            const donation = await prisma.donation.findUnique({
+                where: {
+                    id: Number(donationId)
+                },
+                include: {
+                    openFood: true,
+                }
+            });
+            if (!donation) throw new BadRequestError('Donation not found!');
+            if (donation.openFood?.restaurantUserId !== Number(id)) throw new BadRequestError('Donation not found in your donations!');
+            const currentStatus = donation.status;
+            const selfPickup = donation.openFood?.selfPickup;
+            let nextStatus;
+            switch (currentStatus) {
+                case 'pending':
+                    nextStatus = DonationStatus.accepted;
+                    break;
+                case 'accepted':
+                    nextStatus = selfPickup ? DonationStatus.inBox : DonationStatus.onTheWay;
+                    break;
+                case 'onTheWay':
+                    nextStatus = DonationStatus.takenFromBox;
+                    break;
+                default:
+                    throw new BadRequestError('Donation is already ready to be picked up from the restaurant!');
+            }
+            await prisma.donation.update({
+                where: {
+                    id: Number(donationId)
+                },
+                data: {
+                    status: nextStatus
+                },
+                include: {
+                    openFood: true,
+                }
+            })
+
+            const updatedDonation = await prisma.donation.findUnique({
+                where: {
+                    id: Number(donationId)
+                },
+                include: {
+                    openFood: true,
+                }
+            })
+
+            res.status(200).json({ success: true, data: updatedDonation });
+        } catch (e: any) {
+            res.status(400).json({ success: false, message: e.message });
+        }
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
     }
 }

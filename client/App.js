@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { Provider } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'
 import store from './src/store/store'
 import ModalOpen from './src/constants/ModalOpen';
@@ -20,7 +21,9 @@ import OwnedPackagedGive from './src/screens/OwnedPackagedGive';
 import MakeDonation from './src/screens/MakeDonation';
 import Settings from './src/screens/Settings';
 import Onboarding from './src/components/Onboarding';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import RestaurantGives from './src/screens/RestaurantGives';
+import OwnedOpenDonation from './src/screens/OwnedOpenDonation';
+import OpenDonation from './src/screens/OpenDonation';
 
 export default function App() {
   axios.interceptors.request.use(
@@ -143,6 +146,27 @@ export default function App() {
               <Stack.Screen
                 name='Onboarding'
                 component={Onboarding}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name='RestaurantGives'
+                component={RestaurantGives}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name='OwnedOpenDonation'
+                component={OwnedOpenDonation}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name='OpenDonation'
+                component={OpenDonation}
                 options={{
                   headerShown: false,
                 }}

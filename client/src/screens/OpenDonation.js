@@ -1,54 +1,28 @@
-import { StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Appbar, Card, Button, TextInput, Dialog, Portal, Paragraph } from 'react-native-paper';
+import { StyleSheet, TouchableOpacity, Image, View, Text } from 'react-native';
+import { Appbar, Card, Button, TextInput, Dialog, Portal, Paragraph, Switch } from 'react-native-paper';
 import React from 'react';
 import store from '../store/store.js';
-import moment from 'moment';
 import { showToast } from '../utils/functions.js';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as ImagePicker from 'expo-image-picker';
 import { getDownloadURL, ref } from "firebase/storage";
 import { uploadImage, storage } from '../firebase.js';
-import { EMPTY_PACKAGED_FOOD_PHOTO } from "@env";
-import { updateGive, deleteDonation } from '../store/giver.js';
+import { EMPTY_OPEN_FOOD_PHOTO } from "@env";
+import { deleteDonation, updateDonation } from '../store/restaurant.js';
 
-export default function PackagedGive({ navigation, route }) {
-    const { give } = route.params;
-    const [photo, setPhoto] = React.useState(give.photo || "");
-    const [name, setName] = React.useState(give.name || "");
-    const [description, setDescription] = React.useState(give.description || "");
-    const [quantity, setQuantity] = React.useState(give.quantity.toString() || "");
-    const [expirationDate, setExpirationDate] = React.useState(moment(give.expirationDate).format('YYYY-MM-DD') || "");
+export default function OpenDonation({ navigation, route }) {
+    const { donation } = route.params;
+    const [photo, setPhoto] = React.useState(donation.photo || "");
+    const [name, setName] = React.useState(donation.name || "");
+    const [description, setDescription] = React.useState(donation.description || "");
+    const [quantity, setQuantity] = React.useState(donation.quantity.toString() || "");
     const [visible, setVisible] = React.useState(false);
+    const [selfPickup, setSelfPickup] = React.useState(donation.selfPickup || false);
+
+    const toggleSwitch = () => setSelfPickup(!selfPickup);
 
     const showDialog = () => setVisible(true);
     const hideDialog = () => setVisible(false);
-
-    const handleExpirationDateChange = (text) => {
-        const formattedDate = text.replace(/[^\d]/g, '')
-        let dateString = ''
-
-        if (formattedDate.length > 0) {
-            dateString = formattedDate.slice(0, 4)
-        }
-        if (formattedDate.length > 4) {
-            const month = formattedDate.slice(4, 6)
-            if (month <= 12) {
-                dateString += `-${month}`
-            } else {
-                return
-            }
-        }
-        if (formattedDate.length > 6) {
-            const day = formattedDate.slice(6, 8)
-            if (day <= 31) {
-                dateString += `-${day}`
-            } else {
-                return
-            }
-        }
-
-        setExpirationDate(dateString)
-    }
 
     const pickPhoto = async () => {
         const { assets, canceled } = await ImagePicker.launchImageLibraryAsync({
@@ -64,9 +38,9 @@ export default function PackagedGive({ navigation, route }) {
     };
 
     const setPhotoURL = async (pickedPhoto) => {
-        const imageName = `${give.id}_${give.name}`
-        const storageRef = ref(storage, `packaged_foods/${imageName}`);
-        await uploadImage(pickedPhoto, imageName, 'packaged_foods').then(() => {
+        const imageName = `${donation.id}_${donation.name}`
+        const storageRef = ref(storage, `open_foods/${imageName}`);
+        await uploadImage(pickedPhoto, imageName, 'open_foods').then(() => {
             setTimeout(async () => {
                 getDownloadURL(storageRef).then(url => {
                     setPhoto(url);
@@ -78,34 +52,28 @@ export default function PackagedGive({ navigation, route }) {
         })
     }
 
-    const handleUpdateGive = async () => {
-        const updatedGive = {
-            packagedFoodId: give.id,
+    const handleUpdateDonation = async () => {
+        const updatedDonation = {
+            donationId: donation.id,
             name: name,
             description: description,
             quantity: quantity,
-            expirationDate: new Date(expirationDate),
             photo: photo,
+            selfPickup: selfPickup,
         }
 
-        await store.dispatch(updateGive(updatedGive)).then((res) => res.meta.requestStatus === 'fulfilled' && showToast('Give updated successfully'));
+        await store.dispatch(updateDonation(updatedDonation)).then((res) => res.meta.requestStatus === 'fulfilled' && showToast('Donation updated successfully'));
     }
 
-    const handleDeleteGive = async () => {
-        await store.dispatch(deleteDonation({ packagedFoodId: give.id })).then((res) => res.meta.requestStatus === 'fulfilled' && showToast('Give deleted successfully')).then(() => navigation.goBack());
+    const handleDeleteDonation = async () => {
+        await store.dispatch(deleteDonation({ donationId: donation.id })).then((res) => res.meta.requestStatus === 'fulfilled' && showToast('Donation deleted successfully')).then(() => navigation.goBack());
     }
-
-    React.useEffect(() => {
-        if (expirationDate === 'Invalid date') {
-            setExpirationDate('')
-        }
-    }, [expirationDate])
 
     return (
         <>
             <Appbar.Header style={{ backgroundColor: 'tomato' }} mode='center-aligned' statusBarHeight={Platform.OS === 'ios' ? 40 : 25}>
                 <Appbar.BackAction color={'white'} onPress={() => navigation.goBack()} />
-                <Appbar.Content style={{ color: 'white' }} color={'white'} title={give.name} titleStyle={{ color: 'white' }} />
+                <Appbar.Content style={{ color: 'white' }} color={'white'} title={donation.name} titleStyle={{ color: 'white' }} />
             </Appbar.Header>
             <KeyboardAwareScrollView
                 enableOnAndroid={true}
@@ -151,18 +119,10 @@ export default function PackagedGive({ navigation, route }) {
                         onChangeText={text => setQuantity(text.replace(/[^0-9]/g, ''))}
                         mode='outlined'
                     />
-                    <TextInput
-                        label='Expiration Date'
-                        style={styles.input}
-                        placeholder='YYYY-MM-DD'
-                        value={expirationDate}
-                        theme={styles.inputColor}
-                        underlineColorAndroid={'rgba(0,0,0,0)'}
-                        onChangeText={(text) => handleExpirationDateChange(text)}
-                        maxLength={10}
-                        mode='outlined'
-                        keyboardType='numeric'
-                    />
+                    <View style={styles.switchContainer}>
+                        <Text style={styles.switchText}>Self Pickup:</Text>
+                        <Switch color='tomato' value={selfPickup} onValueChange={toggleSwitch} style={styles.switch} />
+                    </View>
                     <TouchableOpacity onPress={pickPhoto} style={styles.cover}>
                         <Image source={{ uri: photo }} style={styles.photo} />
                     </TouchableOpacity>
@@ -171,7 +131,7 @@ export default function PackagedGive({ navigation, route }) {
                         placeholder='https://example.com/photo.png'
                         onChangeText={text => setPhoto(text)}
                         style={styles.input}
-                        value={photo === EMPTY_PACKAGED_FOOD_PHOTO ? '' : photo}
+                        value={photo === EMPTY_OPEN_FOOD_PHOTO ? '' : photo}
                         theme={styles.inputColor}
                         underlineColorAndroid={'rgba(0,0,0,0)'}
                         mode='outlined'
@@ -197,8 +157,8 @@ export default function PackagedGive({ navigation, route }) {
                             icon='check'
                             mode='contained'
                             style={{ width: '40%', backgroundColor: 'tomato' }}
-                            onPress={handleUpdateGive}
-                            disabled={name === '' || description === '' || quantity === '' || expirationDate === ''}
+                            onPress={handleUpdateDonation}
+                            disabled={name === '' || description === '' || quantity === ''}
                         >
                             Update
                         </Button>
@@ -206,12 +166,12 @@ export default function PackagedGive({ navigation, route }) {
                     </Card.Actions>
                     <Portal>
                         <Dialog visible={visible} onDismiss={hideDialog}>
-                            <Dialog.Title>Remove Give</Dialog.Title>
+                            <Dialog.Title>Remove Donation</Dialog.Title>
                             <Dialog.Content>
-                                <Paragraph>Are you sure you want to remove this give?</Paragraph>
+                                <Paragraph>Are you sure you want to remove this donation?</Paragraph>
                             </Dialog.Content>
                             <Dialog.Actions>
-                                <Button onPress={handleDeleteGive} textColor={'tomato'} style={{ width: '30%', alignSelf: 'center' }} icon='check'>Yes</Button>
+                                <Button onPress={handleDeleteDonation} textColor={'tomato'} style={{ width: '30%', alignSelf: 'center' }} icon='check'>Yes</Button>
                                 <Button onPress={hideDialog} textColor={'tomato'} style={{ width: '30%', alignSelf: 'center' }} icon='close'>No</Button>
                             </Dialog.Actions>
                         </Dialog>
@@ -300,5 +260,26 @@ const styles = StyleSheet.create({
             placeholder: '#ccc',
             text: '#000',
         }
+    },
+    switchContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        width: '80%',
+        alignSelf: 'center',
+        marginTop: 10,
+        alignItems: 'center',
+        backgroundColor: 'white',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#79747e',
+    },
+    switchText: {
+        fontSize: 20,
+        marginTop: -3,
+        color: 'tomato',
+    },
+    switch: {
+        marginLeft: 10,
+        transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }],
     },
 })

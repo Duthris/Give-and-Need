@@ -173,6 +173,19 @@ export default function NavBar({ navigation }) {
                                                         />
                                                     </>
                                                 )}
+                                                {role === 'restaurant' && (
+                                                    <>
+                                                        <Menu.Item
+                                                            onPress={() => {
+                                                                navigation.navigate('RestaurantGives')
+                                                                closeMenu()
+                                                            }}
+                                                            title="My Donations"
+                                                            leadingIcon={() => <Icons name="hand-heart" style={{ marginBottom: 2, marginLeft: 2 }} size={24} color="tomato" />}
+                                                            titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
+                                                        />
+                                                    </>
+                                                )}
                                             </Menu>
                                         </View>
                                     </TouchableOpacity>
