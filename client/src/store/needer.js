@@ -6,6 +6,7 @@ const initialState = {
     neederLoading: false,
     neederError: null,
     needs: [],
+    addresses: [],
     needer: null,
     needsLoading: true,
     forgotLoading: false,
@@ -13,6 +14,7 @@ const initialState = {
     verifyLoading: false,
     resendLoading: false,
     updateLoading: false,
+    addressesLoading: false,
 }
 
 export const verifyNeeder = createAsyncThunk(
@@ -123,6 +125,58 @@ export const updateNeeder = createAsyncThunk(
     async (data, { rejectWithValue }) => {
         try {
             const response = await api.put('/needers/update-account', data);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
+export const getAddresses = createAsyncThunk(
+    'needer/get-addresses',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/needers/addresses');
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
+export const addAddress = createAsyncThunk(
+    'needer/add-address',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/needers/addresses/add-address', data);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
+export const deleteAddress = createAsyncThunk(
+    'needer/delete-address',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.remove(`/needers/addresses/delete-address/${data.id}`);
+            return response.data;
+        } catch (err) {
+            showErrorToast(err.response.data.message);
+            return rejectWithValue(err.response.data);
+        }
+    }
+)
+
+export const updateAddress = createAsyncThunk(
+    'needer/update-address',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await api.put(`/needers/addresses/update-address/${data.id}`, data);
             return response.data;
         } catch (err) {
             showErrorToast(err.response.data.message);
@@ -249,6 +303,55 @@ const neederSlice = createSlice({
                 if (action.payload) state.neederError = action.payload.error;
                 else state.neederError = action.error.message;
                 state.updateLoading = false;
+            })
+            .addCase(getAddresses.pending, (state) => {
+                state.addressesLoading = true;
+            })
+            .addCase(getAddresses.fulfilled, (state, { payload }) => {
+                state.addressesLoading = false;
+                state.addresses = payload.data;
+            })
+            .addCase(getAddresses.rejected, (state, action) => {
+                if (action.payload) state.neederError = action.payload.error;
+                else state.neederError = action.error.message;
+                state.addressesLoading = false;
+            })
+            .addCase(addAddress.pending, (state) => {
+                state.addressesLoading = true;
+            })
+            .addCase(addAddress.fulfilled, (state, { payload }) => {
+                state.addressesLoading = false;
+                state.addresses.push(payload.data);
+            })
+            .addCase(addAddress.rejected, (state, action) => {
+                if (action.payload) state.neederError = action.payload.error;
+                else state.neederError = action.error.message;
+                state.addressesLoading = false;
+            })
+            .addCase(deleteAddress.pending, (state) => {
+                state.addressesLoading = true;
+            })
+            .addCase(deleteAddress.fulfilled, (state, { payload }) => {
+                state.addressesLoading = false;
+                state.addresses = state.addresses.filter(address => address.id !== payload.data.id);
+            })
+            .addCase(deleteAddress.rejected, (state, action) => {
+                if (action.payload) state.neederError = action.payload.error;
+                else state.neederError = action.error.message;
+                state.addressesLoading = false;
+            })
+            .addCase(updateAddress.pending, (state) => {
+                state.addressesLoading = true;
+            })
+            .addCase(updateAddress.fulfilled, (state, { payload }) => {
+                state.addressesLoading = false;
+                const addressIndex = state.addresses.findIndex(address => address.id === payload.data.id);
+                state.addresses[addressIndex] = payload.data;
+            })
+            .addCase(updateAddress.rejected, (state, action) => {
+                if (action.payload) state.neederError = action.payload.error;
+                else state.neederError = action.error.message;
+                state.addressesLoading = false;
             })
 })
 

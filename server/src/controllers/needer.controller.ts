@@ -538,7 +538,11 @@ export const getNeeds = async (req: Request, res: Response) => {
                     neederUserId: Number(id)
                 },
                 include: {
-                    openFood: true,
+                    openFood: {
+                        include: {
+                            restaurantUser: true,
+                        }
+                    },
                     packagedFood: true,
                     FoodBox: true,
                 }
@@ -782,5 +786,150 @@ export const reSendVerificationCode = async (req: Request, res: Response) => {
         if (e instanceof Error) message = e.message;
         else message = String(e);
         res.status(400).json({ success: false, message });
+    }
+}
+
+export const getAddresses = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        const addresses = await prisma.address.findMany({
+            where: {
+                neederUserId: Number(id)
+            }
+        });
+        res.status(200).json({ success: true, data: addresses });
+    } catch (e) {
+        let message;
+        if (e instanceof Error) message = e.message;
+        else message = String(e);
+        res.status(400).json({ success: false, message });
+    }
+}
+
+export const addAddress = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        const { address, name } = req.body;
+        const needer = await prisma.neederUser.findUnique({
+            where: {
+                id: Number(id)
+            }
+        });
+
+        if (!needer) throw new BadRequestError('Needer not found!');
+
+        const newAddress = await prisma.address.create({
+            data: {
+                address,
+                neederUserId: Number(id),
+                name,
+                city: '',
+                state: '',
+                country: '',
+                zip: '',
+            }
+        });
+        res.status(200).json({ success: true, data: newAddress });
+    } catch (e: any) {
+        res.status(400).json({ success: false, message: e.message });
+    }
+}
+
+export const deleteAddress = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        const { id: addressId } = req.params;
+
+        const needer = await prisma.neederUser.findUnique({
+            where: {
+                id: Number(id)
+            }
+        });
+
+        if (!needer) throw new BadRequestError('Needer not found!');
+
+        const address = await prisma.address.findUnique({
+            where: {
+                id: Number(addressId)
+            }
+        });
+
+        if (!address) throw new BadRequestError('Address not found!');
+
+        const deletedAddress = await prisma.address.delete({
+            where: {
+                id: Number(addressId)
+            }
+        });
+        res.status(200).json({ success: true, data: deletedAddress });
+    } catch (e: any) {
+        res.status(400).json({ success: false, message: e.message });
+    }
+}
+
+export const checkFoodBoxPassword = async (req: Request, res: Response) => {
+    const { password } = req.headers;
+
+    if (!password) res.status(200).write('false');
+
+    const foodBox = await prisma.foodBox.findUnique({
+        where: {
+            id: 2
+        }
+    });
+
+
+    if (!foodBox) throw new BadRequestError('Food box not found!');
+
+    const isPasswordCorrect = foodBox.password === password;
+
+    isPasswordCorrect ? res.status(200).write('true') : res.status(200).write('false');
+
+    res.end();
+}
+
+export const updateAddress = async (req: Request, res: Response) => {
+    try {
+        const id = getIdFromToken(req);
+        const { id: addressId } = req.params;
+        const { address, name } = req.body;
+
+        const needer = await prisma.neederUser.findUnique({
+            where: {
+                id: Number(id)
+            }
+        });
+
+        if (!needer) throw new BadRequestError('Needer not found!');
+
+        const addressToUpdate = await prisma.address.findUnique({
+            where: {
+                id: Number(addressId),
+            }
+        });
+
+        if (!addressToUpdate) throw new BadRequestError('Address not found!');
+
+        if (addressToUpdate.neederUserId !== Number(id)) throw new BadRequestError('You are not authorized to update this address!')
+
+        await prisma.address.update({
+            where: {
+                id: Number(addressId)
+            },
+            data: {
+                address,
+                name
+            }
+        });
+
+        const updatedAddress = await prisma.address.findUnique({
+            where: {
+                id: Number(addressId)
+            }
+        });
+
+        res.status(200).json({ success: true, data: updatedAddress });
+    } catch (e: any) {
+        res.status(400).json({ success: false, message: e.message });
     }
 }

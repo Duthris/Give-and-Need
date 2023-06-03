@@ -141,15 +141,27 @@ export default function NavBar({ navigation }) {
                                                     titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
                                                 />
                                                 {role === 'needer' && (
-                                                    <Menu.Item
-                                                        onPress={() => {
-                                                            navigation.navigate('Needs')
-                                                            closeMenu()
-                                                        }}
-                                                        title="My Needs"
-                                                        leadingIcon={() => <Icons name="cart-heart" style={{ marginBottom: 2 }} size={26} color="tomato" />}
-                                                        titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
-                                                    />
+                                                    <>
+                                                        <Menu.Item
+                                                            onPress={() => {
+                                                                navigation.navigate('Needs')
+                                                                closeMenu()
+                                                            }}
+                                                            title="My Needs"
+                                                            leadingIcon={() => <Icons name="cart-heart" style={{ marginBottom: 2 }} size={26} color="tomato" />}
+                                                            titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
+                                                        />
+
+                                                        <Menu.Item
+                                                            onPress={() => {
+                                                                navigation.navigate('Addresses')
+                                                                closeMenu()
+                                                            }}
+                                                            title="My Addresses"
+                                                            leadingIcon={() => <Icons name="map-marker" style={{ marginBottom: 2, marginLeft: 2 }} size={24} color="tomato" />}
+                                                            titleStyle={{ fontSize: 16, fontWeight: 'bold', color: 'tomato' }}
+                                                        />
+                                                    </>
                                                 )}
                                                 {role === 'giver' && (
                                                     <>

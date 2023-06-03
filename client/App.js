@@ -25,6 +25,7 @@ import RestaurantGives from './src/screens/RestaurantGives';
 import OwnedOpenDonation from './src/screens/OwnedOpenDonation';
 import OpenDonation from './src/screens/OpenDonation';
 import MakeOpenDonation from './src/screens/MakeOpenDonation';
+import Addresses from './src/screens/Addresses';
 
 export default function App() {
   axios.interceptors.request.use(
@@ -175,6 +176,13 @@ export default function App() {
               <Stack.Screen
                 name='MakeOpenDonation'
                 component={MakeOpenDonation}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name='Addresses'
+                component={Addresses}
                 options={{
                   headerShown: false,
                 }}

@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { Appbar, Card, Button, Chip } from 'react-native-paper';
 import React from 'react';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -6,7 +6,6 @@ import { markNeedAsCompleted } from '../store/needer.js';
 import store from '../store/store.js';
 import { showToast } from '../utils/functions.js';
 import { getBackgrounColorByStatus, getTextByStatus, getIconNameByStatus } from '../utils/functions';
-import * as Clipboard from 'expo-clipboard';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 export default function RestaurantNeed({ navigation, route }) {
@@ -16,11 +15,6 @@ export default function RestaurantNeed({ navigation, route }) {
         store.dispatch(markNeedAsCompleted({ id: need.id })).then((res) => res.meta.requestStatus === 'fulfilled' && navigation.goBack())
         showToast(`Marked ${need.openFood.name} need as completed`);
     }
-
-    const copyToClipboard = async (code) => {
-        await Clipboard.setStringAsync(code);
-        showToast(`Copied ${code} to clipboard`);
-    };
 
     return (
         <>
@@ -49,29 +43,6 @@ export default function RestaurantNeed({ navigation, route }) {
                     >
                         <Text style={styles.chipText}>{getTextByStatus(need.status)}</Text>
                     </Chip>
-                    {need.status === 'inBox' && need.openFood.selfPickup && need.FoodBox[0].password && (
-                        <View
-                            style={{
-                                backgroundColor: 'tomato',
-                                width: '90%',
-                                alignSelf: 'center',
-                                marginBottom: 10,
-                                padding: 10,
-                                borderRadius: 20,
-                            }}
-                        >
-                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => copyToClipboard(need.FoodBox[0].password)}>
-                                <Icons name="alert" size={22} color="yellow" />
-                                <Text style={{ color: 'white', marginLeft: 10, flexWrap: 'wrap', flexShrink: 1 }}>
-                                    Your need is in the box. You can pick it up from the food box with the code
-                                    <Text style={{ fontWeight: 'bold', fontSize: 20 }}>
-                                        {' '}{need.FoodBox[0].password}{' '}
-                                    </Text>
-                                    <Icons name="content-copy" size={18} color="white" />
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
                     {!need.openFood.selfPickup && need.status === 'onTheWay' && (
                         <View
                             style={{
@@ -96,6 +67,16 @@ export default function RestaurantNeed({ navigation, route }) {
                             <Text style={styles.description}>{need.openFood.description}</Text>
                         </Card.Content>
                     </ScrollView>
+                    {need.openFood.selfPickup && (
+                        <>
+                            <Text style={{ textAlign: 'center', color: 'tomato', fontWeight: 600, marginTop: 10, fontSize: 20 }}>Restaurant address to pick up</Text>
+                            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={true} persistentScrollbar={true}>
+                                <Card.Content>
+                                    <Text style={styles.description}>{need.openFood.restaurantUser.address}</Text>
+                                </Card.Content>
+                            </ScrollView>
+                        </>
+                    )}
                     <Card.Actions style={{ justifyContent: 'space-around' }}>
                         {need.status !== 'completed' && (
                             <Button

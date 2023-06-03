@@ -1,6 +1,6 @@
 {
   "name": "give-and-need",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "abu graduation project backend",
   "main": "index.js",
   "scripts": {

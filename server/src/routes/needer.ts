@@ -2,7 +2,7 @@ import { Router } from 'express';
 import {
     neederLogin, neederRegister, getNeeder, getNeeders, verifyNeeder, deleteNeeder, addFoodToBasket, getNeederBasket,
     needFood, getNeeds, getNeed, clearBasket, updateNeeder, resendFoodBoxPassword, markAsCompletedNeed, changePassword,
-    forgotPassword, reSendVerificationCode
+    forgotPassword, reSendVerificationCode, getAddresses, addAddress, checkFoodBoxPassword, deleteAddress, updateAddress
 } from '../controllers/needer.controller';
 import { validateRequest } from '../middlewares/validate.request';
 import { isAuthenticated } from '../middlewares/is.authenticated';
@@ -31,5 +31,10 @@ router.put('/mark-as-completed-need/:id', isAuthenticated, validateRequest, isNe
 router.post('/auth/forgot-password', validateRequest, forgotPassword);
 router.put('/auth/change-password', validateRequest, changePassword);
 router.post('/auth/resend-verification-code', validateRequest, reSendVerificationCode);
+router.get('/addresses', isAuthenticated, validateRequest, isNeeder, getAddresses);
+router.post('/addresses/add-address', isAuthenticated, validateRequest, isNeeder, addAddress);
+router.delete('/addresses/delete-address/:id', isAuthenticated, validateRequest, isNeeder, deleteAddress);
+router.post('/check-food-box-password', validateRequest, checkFoodBoxPassword);
+router.put('/addresses/update-address/:id', isAuthenticated, validateRequest, isNeeder, updateAddress);
 
 export default router;
