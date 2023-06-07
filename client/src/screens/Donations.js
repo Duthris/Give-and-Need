@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, Dimensions, StyleSheet, Image, TouchableOpacity, ScrollView, Platform } from 'react-native';
-import { Button, Dialog, Portal, Chip, Checkbox, Appbar } from 'react-native-paper';
+import { Button, Dialog, Portal, Chip, Checkbox, Appbar, RadioButton, List } from 'react-native-paper';
 import Carousel from 'react-native-reanimated-carousel';
 import { getPackagedFoods, getRestaurantFoods } from '../store/donation';
-import { needFood } from '../store/needer';
+import { needFood, getAddresses } from '../store/needer';
 import store from '../store/store';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import moment from 'moment';
@@ -25,6 +25,7 @@ const Donations = ({ navigation }) => {
     const [visible, setVisible] = React.useState(false);
     const [visibleRestaurant, setVisibleRestaurant] = React.useState(false);
     const [visibleMap, setVisibleMap] = React.useState(false);
+    const [visibleAddress, setVisibleAddress] = React.useState(false);
     const [checked, setChecked] = React.useState(false);
     const [checkedRestaurant, setCheckedRestaurant] = React.useState(false);
     const [openTerms, setOpenTerms] = React.useState(false);
@@ -32,8 +33,10 @@ const Donations = ({ navigation }) => {
     const [scrolledToEnd, setScrolledToEnd] = React.useState(false);
     const [scrolledToEndRestaurant, setScrolledToEndRestaurant] = React.useState(false);
     const [selectedFoodBox, setSelectedFoodBox] = React.useState({});
+    const [selectedAddress, setSelectedAddress] = React.useState({});
     const packagedFoodsSelector = useSelector((state) => state.donation.packagedFoods);
     const restaurantFoodsSelector = useSelector((state) => state.donation.restaurantFoods);
+    const addresses = useSelector((state) => state.needer.addresses);
     const role = useSelector((state) => state.auth.role);
 
     const handleScrollToEnd = ({ layoutMeasurement, contentOffset, contentSize }) => {
@@ -95,6 +98,12 @@ const Donations = ({ navigation }) => {
         setSelectedFoodBox({});
     }
 
+    const showAddress = () => setVisibleAddress(true);
+    const hideAddress = () => {
+        setVisibleAddress(false);
+        setSelectedAddress({});
+    }
+
     const handleSelectFoodBox = (item) => {
         selectedFoodBox.id !== item.id && setSelectedFoodBox(item);
     }
@@ -125,7 +134,8 @@ const Donations = ({ navigation }) => {
         const restaurantFoodData = {
             packagedFoodId: null,
             openFoodId: activeItemRestaurant.id,
-            foodBoxId: null
+            foodBoxId: null,
+            addressId: selectedAddress.id
         }
 
         const data = visibleRestaurant ? restaurantFoodData : packagedFoodData;
@@ -135,14 +145,20 @@ const Donations = ({ navigation }) => {
                 hideDialog();
                 hideDialogRestaurant();
                 hideMap();
+                hideAddress();
                 navigation.navigate('Needs');
             }
         });
     }
 
+    const handleGetAddress = () => {
+        store.dispatch(getAddresses()).then((res) => res.meta.requestStatus === 'fulfilled');
+    }
+
     React.useEffect(() => {
         handleGetPackagedFoods();
         handleGetRestaurantFoods();
+        handleGetAddress();
     }, []);
 
     React.useEffect(() => {
@@ -419,7 +435,7 @@ const Donations = ({ navigation }) => {
                                                     mode={'elevated'}
                                                     icon={() => <Icon name="hand-heart" style={{ marginBottom: 5 }} size={22} color="white" />}
                                                     disabled={!checkedRestaurant}
-                                                    onPress={handleNeedFood}
+                                                    onPress={activeItemRestaurant.selfPickup ? handleNeedFood : showAddress}
                                                     style={checkedRestaurant ? styles.buttonStyle : styles.disabledButtonStyle}
                                                 >
                                                     <Text style={{ color: 'white', fontWeight: 600 }}>Need</Text>
@@ -473,6 +489,48 @@ const Donations = ({ navigation }) => {
                                             icon={() => <Icon name="cancel" size={22} color="white" />}
                                             style={styles.buttonStyle}
                                             onPress={hideMap}
+                                        >
+                                            <Text style={{ color: 'white', fontWeight: 600 }}>Cancel</Text>
+                                        </Button>
+                                    </Dialog.Actions>
+                                </Dialog>
+                            </Portal>
+                            <Portal>
+                                <Dialog visible={visibleAddress} onDismiss={hideAddress}>
+                                    <Dialog.Title style={{ fontSize: 28, fontWeight: 800, color: 'tomato' }}>Address</Dialog.Title>
+                                    <Dialog.Content style={{ alignItems: 'flex-start', height: 300 }}>
+                                        <Text style={{ fontSize: 18, paddingBottom: 10 }}>
+                                            Select the address you want to be delivered to by restaurant.
+                                        </Text>
+                                        <RadioButton.Group onValueChange={value => setSelectedAddress(value)} value={selectedAddress}>
+                                            {addresses.map((address, index) => (
+                                                <ScrollView>
+                                                    <View key={index} style={{ flexDirection: 'row', width: '100%', paddingVertical: 5 }}>
+                                                        <RadioButton value={address} color={'tomato'} />
+                                                        <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', marginLeft: 5 }}>
+                                                            <Text style={{ fontSize: 18, fontWeight: 600, color: 'tomato' }}>{address.name}</Text>
+                                                            <Text style={{ fontSize: 18, fontWeight: 400, color: 'gray' }}>{address.address}</Text>
+                                                        </View>
+                                                    </View>
+                                                </ScrollView>
+                                            ))}
+                                        </RadioButton.Group>
+                                    </Dialog.Content>
+                                    <Dialog.Actions style={{ marginTop: 50 }}>
+                                        <Button
+                                            mode={'elevated'}
+                                            icon={() => <Icon name="hand-heart" style={{ marginBottom: 5 }} size={22} color="white" />}
+                                            disabled={!selectedAddress.id}
+                                            onPress={handleNeedFood}
+                                            style={selectedAddress.id ? styles.buttonStyle : styles.disabledButtonStyle}
+                                        >
+                                            <Text style={{ color: 'white', fontWeight: 600 }}>Need</Text>
+                                        </Button>
+                                        <Button
+                                            mode={'elevated'}
+                                            icon={() => <Icon name="cancel" size={22} color="white" />}
+                                            style={styles.buttonStyle}
+                                            onPress={hideAddress}
                                         >
                                             <Text style={{ color: 'white', fontWeight: 600 }}>Cancel</Text>
                                         </Button>

@@ -9,6 +9,8 @@ import { getBackgrounColorByStatus, getTextByStatus, getIconNameByStatus, showTo
 
 export default function OwnedOpenDonation({ navigation, route }) {
     const { donation } = route.params;
+    let address = !donation.openFood.selfPickup && donation.addressId !== null && donation.neederUser?.Address?.length > 0 && donation.neederUser.Address.find((address) => address.id === donation.addressId);
+    console.log(address);
 
     const [visible, setVisible] = React.useState(false);
 
@@ -83,12 +85,12 @@ export default function OwnedOpenDonation({ navigation, route }) {
                             <Text style={styles.description}>{donation.openFood.description}</Text>
                         </Card.Content>
                     </ScrollView>
-                    {!donation.openFood.selfPickup && donation.neederUser.Address.length > 0 && donation.neederUser.Address[0].address !== '' && (
+                    {address && (
                         <>
                             <Text style={styles.addressText}>Needer Address to be Delivered</Text>
                             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={true} persistentScrollbar={true}>
                                 <Card.Content>
-                                    <Text style={styles.description}>{donation.neederUser.Address[0].address}</Text>
+                                    <Text style={styles.description}>{address.address}</Text>
                                 </Card.Content>
                             </ScrollView>
                         </>

@@ -288,8 +288,8 @@ export const getOwnedDonations = async (req: Request, res: Response) => {
                 },
             })
 
-            const donations = await Promise.all(openFoods.map(async (openFood) => {
-                const donation = await prisma.donation.findFirst({
+            const donationPromises = openFoods.map(async (openFood) => {
+                const donations = await prisma.donation.findMany({
                     where: {
                         openFoodId: openFood.id
                     },
@@ -299,15 +299,16 @@ export const getOwnedDonations = async (req: Request, res: Response) => {
                             include: {
                                 Address: true
                             }
-                        }
+                        },
                     }
                 })
-                return donation
-            }))
+                return donations;
+            });
 
-            const filteredDonations = donations.filter((donation) => donation !== null);
+            const donationResults = await Promise.all(donationPromises);
+            const donations = donationResults.flat();
 
-            res.status(200).json({ success: true, data: filteredDonations });
+            res.status(200).json({ success: true, data: donations });
         } catch (e: any) {
             res.status(400).json({ success: false, message: e.message });
         }
@@ -318,6 +319,7 @@ export const getOwnedDonations = async (req: Request, res: Response) => {
         res.status(400).json({ success: false, message });
     }
 }
+
 
 export const updateDonation = async (req: Request, res: Response) => {
     try {

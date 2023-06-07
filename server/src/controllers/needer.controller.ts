@@ -380,7 +380,7 @@ export const clearBasket = async (req: Request, res: Response) => {
 export const needFood = async (req: Request, res: Response) => {
     try {
         const id = getIdFromToken(req);
-        const { packagedFoodId, openFoodId, foodBoxId } = req.body;
+        const { packagedFoodId, openFoodId, foodBoxId, addressId } = req.body;
         try {
             const needer = await prisma.neederUser.findUnique({
                 where: {
@@ -396,6 +396,7 @@ export const needFood = async (req: Request, res: Response) => {
                     packagedFoodId: Number(packagedFoodId) || null,
                     openFoodId: Number(openFoodId) || null,
                     status: 'pending',
+                    addressId: Number(addressId) || null,
                 }
             });
 

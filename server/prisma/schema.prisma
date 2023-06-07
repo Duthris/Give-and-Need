@@ -93,20 +93,20 @@ model NeederUser {
 }
 
 model PackagedFood {
-  id          Int        @id @default(autoincrement())
-  name        String
-  photo       String?    @default("https://res.cloudinary.com/dzqkqzjxw/image/upload/v1622021008/packaged-food-default-image.png")
-  quantity    Int?       @default(1)
-  ownable     Boolean?   @default(true)
-  description String?    @default("")
-  createdAt   DateTime?  @default(now())
-  updatedAt   DateTime?  @updatedAt
+  id             Int        @id @default(autoincrement())
+  name           String
+  photo          String?    @default("https://res.cloudinary.com/dzqkqzjxw/image/upload/v1622021008/packaged-food-default-image.png")
+  quantity       Int?       @default(1)
+  ownable        Boolean?   @default(true)
+  description    String?    @default("")
+  createdAt      DateTime?  @default(now())
+  updatedAt      DateTime?  @updatedAt
   expirationDate DateTime?
-  giverUserId Int?
-  giverUser   GiverUser? @relation(fields: [giverUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
-  Donation    Donation[]
-  Basket      Basket[]
-  FoodBox     FoodBox[]
+  giverUserId    Int?
+  giverUser      GiverUser? @relation(fields: [giverUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  Donation       Donation[]
+  Basket         Basket[]
+  FoodBox        FoodBox[]
 
   @@map(name: "packaged_foods")
 }
@@ -142,6 +142,7 @@ model Donation {
   packagedFood   PackagedFood?  @relation(fields: [packagedFoodId], references: [id], onUpdate: Cascade, onDelete: SetNull)
   Rating         Rating[]
   FoodBox        FoodBox[]
+  addressId      Int?
 
   @@map(name: "donations")
 }
@@ -190,6 +191,7 @@ model Address {
   updatedAt    DateTime?   @updatedAt
   neederUserId Int?
   neederUser   NeederUser? @relation(fields: [neederUserId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  donationId   Int?
 
   @@map(name: "addresses")
 }
