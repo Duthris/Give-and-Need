@@ -360,6 +360,13 @@ const Donations = ({ navigation }) => {
                             <Portal>
                                 <Dialog visible={visibleRestaurant} onDismiss={hideDialogRestaurant}>
                                     <Dialog.Title style={{ fontSize: 28, fontWeight: 800, color: 'tomato' }}>{activeItemRestaurant.name}</Dialog.Title>
+                                    <Chip icon={() => <Icon name={!activeItemRestaurant.selfPickup ? 'truck-delivery-outline' : 'google-maps'} size={22} color="white" />}
+                                        style={{ backgroundColor: 'tomato', width: '90%', alignSelf: 'center', marginBottom: 10 }}
+                                    >
+                                        <Text style={{ color: 'white' }}>
+                                            {activeItemRestaurant.selfPickup ? 'Self Pickup' : 'Delivery'}
+                                        </Text>
+                                    </Chip>
                                     {activeItemRestaurant.expirationDate && moment(activeItemRestaurant.expirationDate).isBefore(moment().add(1, 'week')) && (
                                         <Chip icon={() => <Icon name="alert" size={22} color="yellow" />}
                                             style={{ backgroundColor: 'tomato', width: '90%', alignSelf: 'center', marginBottom: 10 }}
@@ -503,7 +510,7 @@ const Donations = ({ navigation }) => {
                                             Select the address you want to be delivered to by restaurant.
                                         </Text>
                                         <RadioButton.Group onValueChange={value => setSelectedAddress(value)} value={selectedAddress}>
-                                            {addresses.map((address, index) => (
+                                            {addresses.length > 1 ? addresses.filter((item, index) => index !== 0)?.map((address, index) => (
                                                 <ScrollView>
                                                     <View key={index} style={{ flexDirection: 'row', width: '100%', paddingVertical: 5 }}>
                                                         <RadioButton value={address} color={'tomato'} />
@@ -513,7 +520,11 @@ const Donations = ({ navigation }) => {
                                                         </View>
                                                     </View>
                                                 </ScrollView>
-                                            ))}
+                                            )) : (
+                                                <View style={{ flexDirection: 'row', width: '100%', paddingVertical: 5 }}>
+                                                    <Text style={{ fontSize: 18, fontWeight: 600, color: 'tomato' }}>You have no address to select, please add a new one first.</Text>
+                                                </View>
+                                            )}
                                         </RadioButton.Group>
                                     </Dialog.Content>
                                     <Dialog.Actions style={{ marginTop: 50 }}>

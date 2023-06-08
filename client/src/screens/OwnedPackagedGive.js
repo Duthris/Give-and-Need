@@ -2,11 +2,11 @@ import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-nati
 import { Modal, Portal, Appbar, Card, Button, Chip, IconButton } from 'react-native-paper';
 import React from 'react';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
-import moment from 'moment';
 import store from '../store/store.js';
 import { cancelGive, updatGiveStatusToNextStep } from '../store/giver.js';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getBackgrounColorByStatus, getTextByStatus, getIconNameByStatus, showToast } from '../utils/functions';
+import * as Clipboard from 'expo-clipboard';
 
 export default function OwnedPackagedGive({ navigation, route }) {
     const { give } = route.params;
@@ -25,6 +25,11 @@ export default function OwnedPackagedGive({ navigation, route }) {
     const handleCancelGive = () => {
         store.dispatch(cancelGive({ donationId: give.id })).then((res) => res.meta.requestStatus === 'fulfilled' && navigation.goBack());
         showToast('Give cancelled successfully');
+    };
+
+    const copyToClipboard = async () => {
+        await Clipboard.setStringAsync(give.FoodBox[0].password);
+        showToast('Password copied to clipboard');
     };
 
     return (

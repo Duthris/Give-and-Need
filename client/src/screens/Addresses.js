@@ -102,7 +102,7 @@ export default function Addresses({ navigation }) {
                     {loadingAddresses && (
                         <ActivityIndicator animating={true} color={'tomato'} size={'large'} style={{ marginTop: 20, marginRight: 70 }} />
                     )}
-                    {!addresses || addresses.length === 0 && (
+                    {!addresses || addresses.length === 1 && (
                         <List.Item
                             title="No Addresses"
                             description="You have no addresses yet."
@@ -112,9 +112,9 @@ export default function Addresses({ navigation }) {
                     )}
                 </List.Accordion>
             </List.Section>
-            {addresses && addresses.length > 0 && (
+            {addresses && addresses.length > 1 ? (
                 <SwipeListView
-                    data={addresses}
+                    data={addresses.filter((item, index) => index !== 0)}
                     renderItem={(data, rowMap) => (
                         <View style={styles.rowFront}>
                             <List.Icon style={{ marginLeft: 10, alignSelf: 'flex-start', margin: 10 }} color={'tomato'} icon="map-marker" />
@@ -142,6 +142,11 @@ export default function Addresses({ navigation }) {
                     previewOpenValue={-40}
                     previewOpenDelay={3000}
                 />
+            ) : (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 22, fontWeight: 400, color: 'tomato' }}>No Addresses</Text>
+                    <Text style={{ fontSize: 18, fontWeight: 300 }}>You have no addresses yet.</Text>
+                </View>
             )}
             <KeyboardAwareScrollView
                 enableOnAndroid={true}

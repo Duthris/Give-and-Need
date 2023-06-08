@@ -11,13 +11,15 @@ export const sendEmail = async (email: string, subject: string, htmlToSend?: any
         });
 
         await transporter.sendMail({
-            from: "Give and Need",
+            from: {
+                name: "Give & Need",
+            },
             to: email,
             subject: subject,
             html: htmlToSend ? htmlToSend : null,
             text: message ? message : null
         });
-        
+
         console.log("Email successfully sent!");
     } catch (error) {
         console.log(error, `Something went wrong!\n${error}`);

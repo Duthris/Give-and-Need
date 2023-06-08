@@ -35,7 +35,7 @@ model RestaurantUser {
   id        Int        @id @default(autoincrement())
   email     String     @unique
   password  String
-  photo     String?    @default("https://res.cloudinary.com/dzqkqzjxw/image/upload/v1622021008/restaurant-user-default-image.png")
+  photo     String?    @default("https://img.freepik.com/premium-vector/elegant-restaurant-composition_23-2147855078.jpg?w=2000")
   verified  Boolean    @default(false)
   phone     String?    @unique
   name      String?    @default("")
@@ -52,7 +52,7 @@ model GiverUser {
   id               Int            @id @default(autoincrement())
   email            String         @unique
   password         String
-  photo            String?        @default("https://res.cloudinary.com/dzqkqzjxw/image/upload/v1622021008/giver-user-default-image.png")
+  photo            String?        @default("https://firebasestorage.googleapis.com/v0/b/duthris-expo-app.appspot.com/o/avatars%2F2_Giver2_Test2?alt=media&token=50c6265c-c37a-43cf-a7d9-065aca7f5533")
   phone            String?        @unique
   birthday         DateTime?
   firstName        String?        @default("")
@@ -73,7 +73,7 @@ model NeederUser {
   id               Int        @id @default(autoincrement())
   email            String     @unique
   password         String
-  photo            String?    @default("https://res.cloudinary.com/dzqkqzjxw/image/upload/v1622021008/needer-user-default-image.png")
+  photo            String?    @default("https://firebasestorage.googleapis.com/v0/b/duthris-expo-app.appspot.com/o/avatars%2F2_Giver2_Test2?alt=media&token=50c6265c-c37a-43cf-a7d9-065aca7f5533")
   phone            String?    @unique
   dailyNeedQuota   Int?       @default(3)
   birthday         DateTime?

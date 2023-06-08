@@ -8,6 +8,7 @@ import store from '../store/store.js';
 import { showToast } from '../utils/functions.js';
 import { getBackgrounColorByStatus, getTextByStatus, getIconNameByStatus } from '../utils/functions';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import * as Clipboard from 'expo-clipboard';
 
 export default function PackagedNeed({ navigation, route }) {
     const { need } = route.params;
@@ -16,6 +17,11 @@ export default function PackagedNeed({ navigation, route }) {
         store.dispatch(markNeedAsCompleted({ id: need.id })).then((res) => res.meta.requestStatus === 'fulfilled' && navigation.goBack())
         showToast(`Marked ${need.packagedFood.name} need as completed`);
     }
+
+    const copyToClipboard = async () => {
+        await Clipboard.setStringAsync(need.FoodBox[0].password);
+        showToast('Password copied to clipboard');
+    };
 
     return (
         <>

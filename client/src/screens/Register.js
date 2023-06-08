@@ -2,7 +2,7 @@ import { StyleSheet, SafeAreaView, Text } from 'react-native';
 import React, { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as Paper from 'react-native-paper';
-import { generateRandomName } from '../utils/functions';
+import { generateRandomName, showToast } from '../utils/functions';
 import store from '../store/store';
 import { giverRegister, neederRegister } from '../store/auth';
 import { useSelector } from 'react-redux';
@@ -21,8 +21,13 @@ export default function Register({ navigation }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         let register = userType === 'needer' ? neederRegister : giverRegister;
-        store.dispatch(register({ firstName, lastName, email, password })).then((res) => res.meta.requestStatus === 'fulfilled' && navigation.navigate('Login'));
-    }
+        store.dispatch(register({ firstName, lastName, email, password })).then((res) => {
+            if (res.meta.requestStatus === 'fulfilled') {
+                showToast('Registered successfully!');
+                navigation.navigate('Login')
+            }
+        })
+    };
 
     const passwordsAreNotEqual = () => {
         return password !== confirmPassword;

@@ -538,6 +538,11 @@ export default function Settings({ navigation }) {
                         fetchDetails={true}
                         onFail={error => console.log(error)}
                         onNotFound={() => console.log('no results')}
+                        textInputProps={{
+                            onFocus: () => placeRef.current?.setAddressText(''),
+                            autoCapitalize: 'none',
+                            autoCorrect: false,
+                        }}
                         styles={{
                             container: {
                                 zIndex: 1,
